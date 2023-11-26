@@ -1,0 +1,13 @@
+!SPEED
+100:6
+!VOICE1
+Cn2 C#2 Dn2 D#2 En2 Fn2 F#2 Gn2 G#2 An2 A#2 Bn2 |
+Cn3 C#3 Dn3 D#3 En3 Fn3 F#3 Gn3 G#3 An3 A#3 Bn3 |
+Cn4 C#4 Dn4 D#4 En4 Fn4 F#4 Gn4 G#4 An4 A#4 Bn4 |
+Cn5 C#5 Dn5 D#5 En5 Fn5 F#5 Gn5 G#5 An5 A#5 Bn5 |
+Cn6 C#6 Dn6 D#6 En6 Fn6 ... ... ... ... ... ... |
+Cn2 Dn2 En2 Fn2 Gn2 An2 Bn2 |
+Cn3 Dn3 En3 Fn3 Gn3 An3 Bn3 |
+Cn4 Bn3 An3 Gn3 Fn3 En3 Dn3 |
+Cn3 Bn2 An2 Gn2 Fn2 En2 Dn2 |
+!VOICE0

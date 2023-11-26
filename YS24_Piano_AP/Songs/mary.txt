@@ -1,0 +1,6 @@
+!SPEED
+20:10
+!VOICE2
+Bn3 An3 Gn3 An3 Bn3 Bn3 Bn3 ... An3 An3 An3 ... Bn3 Bn3 Bn3 ... |
+Bn3 An3 Gn3 An3 Bn3 Bn3 Bn3 ... An3 An3 An3 Bn3 An3 Gn3 ... ... ... |
+!VOICE0

@@ -1,0 +1,6 @@
+!SPEED
+1:1
+!VOICE2
+Cn2 Dn2 En2 Fn2 Gn2 An2 Bn2 Cn3 Bn2 An2 Gn2 Fn2 En2 Dn2 Cn2
+Cn3 Dn3 En3 Fn3 Gn3 An3 Bn3 Cn4 Bn3 An3 Gn3 Fn3 En3 Dn3 Cn3
+!VOICE0
