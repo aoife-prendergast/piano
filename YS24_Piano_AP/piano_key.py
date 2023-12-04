@@ -30,8 +30,7 @@ from threading import Thread
 from time import sleep
 
 from adafruit_led_animation import helper
-from adafruit_led_animation.color import BLACK
-from adafruit_led_animation.color import RED
+from adafruit_led_animation.color import *
 import board
 import neopixel
 from adafruit_led_animation.animation.comet import Comet
@@ -200,8 +199,10 @@ class Key:
         # LEDs linked to key
         self.map = pixel_mappa
 
-        self.dark = Solid(pixel_object=self.map, color = BLACK)
-        self.light = Solid(pixel_object=self.map, color = RED)
+        self.dark = Solid(pixel_object=self.map, color = YELLOW)
+        self.light = Solid(pixel_object=self.map, color =  RED)
+
+        self.dark.animate()
         
     def __str__(self):
         return self.note.name

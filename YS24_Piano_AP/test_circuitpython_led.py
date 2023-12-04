@@ -11,9 +11,9 @@ import adafruit_led_animation.color as color
 # For other boards, change board.NEOPIXEL to match the pin to which the NeoPixels are attached.
 pixel_pin = board.D18
 # Change to match the number of pixels you have attached to your board.
-num_pixels = 30
+num_pixels = 2252
 
-pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=2)
+pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=1)
 blink = Blink(pixels, 1, color.PURPLE)
 rainbow = Rainbow(pixels, speed=0.075, period=5, step=1)
 comet = Comet(
