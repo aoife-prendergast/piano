@@ -199,7 +199,8 @@ class Key:
         # LEDs linked to key
         self.map = pixel_mappa
 
-        self.dark = Solid(pixel_object=self.map, color = YELLOW)
+        warm_white = (253, 244, 220)
+        self.dark = Solid(pixel_object=self.map, color = warm_white)
         self.light = Solid(pixel_object=self.map, color =  RED)
 
         self.dark.animate()
@@ -219,10 +220,10 @@ class Key:
         
     # Methods
     def makeActive(self):
-        self.sensor.when_released = self.noteActive
+        self.sensor.when_held = self.noteActive
     
     def makeUnactive(self):
-        self.sensor.when_released = None
+        self.sensor.when_held = None
 
     def noteActive(self): 
         print("PLAY: ", self.note.getName())
@@ -242,7 +243,6 @@ class Key:
         self.note.stop()
         
     # Getter and Setters
-    
     def setSensor(self, sensor):
         self.sensor = sensor
       
@@ -260,3 +260,9 @@ class Key:
     
     def getState(self): 
         return self.state
+
+    def setActiveColour(self, input): 
+        self.light = Solid(pixel_object=self.map, color =  input)
+
+    def setUnativeColour(self): 
+        self.dark = Solid(pixel_object=self.map, color = input)
