@@ -71,6 +71,11 @@ class Piano:
         self.notes = self.notes + notes
         self.noOfNotes = len(self.notes)
         
+    def resetLights(self):
+        print("Setting all key unactive colors")
+        for key in self.keys:
+            key.setUnactiveState()
+
     def loopKeys(self, active):
         print("Looping all keys")
         for key in self.keys:
@@ -208,6 +213,9 @@ class Key:
     def __str__(self):
         return self.note.name
 
+    def setUnactiveState(self):
+        self.dark.animate()
+
     def led_on(self):
         print("turned on LEDs ", self)
         self.callback_number += 1
@@ -220,10 +228,10 @@ class Key:
         
     # Methods
     def makeActive(self):
-        self.sensor.when_held = self.noteActive
+        self.sensor.when_released = self.noteActive
     
     def makeUnactive(self):
-        self.sensor.when_held = None
+        self.sensor.when_released = None
 
     def noteActive(self): 
         print("PLAY: ", self.note.getName())
@@ -264,5 +272,5 @@ class Key:
     def setActiveColour(self, input): 
         self.light = Solid(pixel_object=self.map, color =  input)
 
-    def setUnativeColour(self): 
+    def setUnactiveColour(self, input): 
         self.dark = Solid(pixel_object=self.map, color = input)
