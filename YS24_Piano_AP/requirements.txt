@@ -45,3 +45,5 @@ typing-extensions                    == 4.3.0
 pygame                               == 2.5.2
 gpiozero
 board
+pydub
+simpleaudio

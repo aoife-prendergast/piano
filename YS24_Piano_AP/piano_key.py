@@ -29,6 +29,10 @@ import threading
 from threading import Thread 
 from time import sleep
 
+from pydub import AudioSegment
+import simpleaudio
+from pydub.playback import _play_with_simpleaudio
+
 from adafruit_led_animation import helper
 from adafruit_led_animation.color import *
 import board
@@ -125,6 +129,8 @@ class Piano:
         count = 0
         allowPlay = False
         nextLineParseSpeed = False
+
+        delay = 0.09
         # Strips the newline character
         for line in lines:
             values = []
@@ -133,33 +139,35 @@ class Piano:
             
             count += 1
             content = line.strip()
+            
             #print("Line{}: {}".format(count, content))
             if allowPlay:
-                print("z")
+                #print("z")
                 parsedNotes = content.split(" ")
                 for noteRead in parsedNotes: 
                     found = False
-                    print(noteRead)
+                    #print(noteRead)
                     if (noteRead == "|"): 
                         pass
                     elif (noteRead == "...") or (noteRead == "---"): 
-                        time.sleep(0.15)
+                        time.sleep(delay)
                     else: 
                         for key in self.keys:
                             if noteRead == key.getNote().getName():
-                                print("note found")
+                                #print("note found")
                                 found = True
                                 key.playSoundSong()
                         # we still want to play the note even if it istn't currently active for a key
                         if not found: 
                             for note in self.notes:
                                 if noteRead == note.getName():
-                                    print("note found")
+                                    #print("note found")
                                     found = True
                                     note.playSound()
                         if not found:
-                            print(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NOTE NOT FOUND !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" )
-                        time.sleep(0.15) # speed
+                            pass
+                            #print(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NOTE NOT FOUND !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" )
+                        time.sleep(delay) # speed
             elif nextLineParseSpeed: 
                 values = content.split(":")
                 #speed = int(values[0])/int(values[1])
@@ -182,8 +190,9 @@ class Note:
         self.sound = sound
         self.state = False
 
-    def playSound(self): 
-        self.sound.play()
+    def playSound(self):
+        _play_with_simpleaudio(self.sound) 
+        #self.sound.play()
 
     def getSound(self): 
         return self.sound
@@ -217,7 +226,7 @@ class Key:
         self.dark.animate()
 
     def led_on(self):
-        print("turned on LEDs ", self)
+        # print("turned on LEDs ", self)
         self.callback_number += 1
         self.light.animate()
 
@@ -234,7 +243,7 @@ class Key:
         self.sensor.when_released = None
 
     def noteActive(self): 
-        print("PLAY: ", self.note.getName())
+        #print("PLAY: ", self.note.getName())
         self.note.playSound()
         
         # update LEDs here 
@@ -243,7 +252,7 @@ class Key:
         led_timer.start()
             
     def playSoundSong(self):
-        print(self.note.getSound().get_length())
+        # print(self.note.getSound().get_length())
         #self.note.playSound()
         self.noteActive()
     
