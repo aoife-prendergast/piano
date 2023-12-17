@@ -32,6 +32,9 @@ import time
 import random
 from gpiozero import *
 import pygame._sdl2.audio as sdl2_audio
+from pydub import AudioSegment
+import simpleaudio
+from pydub.playback import _play_with_simpleaudio
 
 #from adafruit_led_animation import helper
 #from adafruit_led_animation.color import *
@@ -51,16 +54,25 @@ from adafruit_led_animation.sequence import AnimationSequence
 AUDIO_OUTPUT = False
 
 def main(args):
-    pygame.mixer.pre_init(44100,-16,2)
+
     pygame.init()
-    pygame.mixer.init(44100,-16,2)
-    print(pygame.mixer.get_init())
-
-    pygame.mixer.quit()
 
     print(pygame.mixer.get_init())
- 
-    
+    while(1):   
+        #the sounds 
+        #Cn2 = pygame.mixer.Sound("/home/relhwpi/Projects/piano/YS24_Piano_AP/Sounds/Cn2.wav")
+
+
+        Cn2 = AudioSegment.from_wav("/home/relhwpi/Projects/piano/YS24_Piano_AP/Sounds/Cn2.wav")
+        Cs2 = AudioSegment.from_wav("/home/relhwpi/Projects/piano/YS24_Piano_AP/Sounds/C#2.wav")
+        Dn2 = AudioSegment.from_wav("/home/relhwpi/Projects/piano/YS24_Piano_AP/Sounds/Dn2.wav")
+
+        _play_with_simpleaudio(Cn2)
+        _play_with_simpleaudio(Cs2)
+        _play_with_simpleaudio(Dn2)
+
+        time.sleep(5)
+        
     return 0
 
 if __name__ == '__main__':

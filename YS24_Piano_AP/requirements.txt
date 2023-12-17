@@ -47,3 +47,4 @@ gpiozero
 board
 pydub
 simpleaudio
+mido

@@ -28,6 +28,7 @@ import time
 import threading
 from threading import Thread 
 from time import sleep
+import mido
 
 from pydub import AudioSegment
 import simpleaudio
@@ -117,6 +118,35 @@ class Piano:
                 scale_select+=1
         else: 
             print("Invalid Scale Input")
+
+    def parseSongNew(self, song): 
+        self.song = song
+        #print(pygame.mixer.get_num_channels())
+        #chan = pygame.mixer.find_channel()
+
+        delay = 3
+        # Strips the newline character
+        mid = mido.MidiFile(song)
+        delay_constant = 0.8
+        for msg in mid.play():
+            found = False
+            #print(msg)
+            if(msg.type == 'note_on'):
+                for key in self.keys:
+                    if msg.note == key.getNote().getMidiNumber():
+                        #print("note found")
+                        found = True
+                        key.playSoundSong()
+                    # we still want to play the note even if it istn't currently active for a key
+                    if not found: 
+                        for note in self.notes:
+                            if msg.note == note.getMidiNumber():
+                                #print("note found")
+                                found = True
+                                note.playSound()
+
+            if(msg.time > 0):
+                time.sleep(msg.time * delay_constant)
         
     def parseSong(self, song): 
         self.song = song
@@ -185,10 +215,11 @@ class Piano:
                     #key.stopSoundSong()
 
 class Note:
-    def __init__(self, name, sound): 
+    def __init__(self, name, sound, midiNumber): 
         self.name = name
         self.sound = sound
         self.state = False
+        self.midiNumber = midiNumber
 
     def playSound(self):
         _play_with_simpleaudio(self.sound) 
@@ -197,8 +228,11 @@ class Note:
     def getSound(self): 
         return self.sound
 
-    def getName(self): 
+    def getName(self):
         return self.name
+
+    def getMidiNumber(self):
+        return self.midiNumber
 
 class Key: 
     def __init__(self, sensor, note, pixel_mappa = None): 
@@ -232,7 +266,7 @@ class Key:
 
     def led_off_callback(self, arg):
         if(arg == self.callback_number):
-            print("turned off LEDs ", self)
+            #print("turned off LEDs ", self)
             self.dark.animate()
         
     # Methods
