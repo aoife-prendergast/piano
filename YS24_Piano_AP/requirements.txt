@@ -1,3 +1,4 @@
+pip                                  == 24.3.1
 python-rtmidi
 rtmidi
 Adafruit-Blinka                      == 8.5.0
@@ -25,7 +26,6 @@ mock                                 == 4.0.3
 mypy-extensions                      == 0.4.3
 packaging                            == 21.3
 pathspec                             == 0.10.2
-pip                                  == 20.3.4
 platformdirs                         == 2.5.4
 ply                                  == 3.11
 pycrypto                             == 2.6.1
@@ -46,5 +46,6 @@ pygame                               == 2.5.2
 gpiozero
 board
 pydub
-simpleaudio
 mido
+simpleaudio
+lgpio

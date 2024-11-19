@@ -31,8 +31,6 @@ from time import sleep
 import mido
 
 from pydub import AudioSegment
-import simpleaudio
-from pydub.playback import _play_with_simpleaudio
 
 from adafruit_led_animation import helper
 from adafruit_led_animation.color import *
@@ -61,6 +59,10 @@ class Piano:
         # key list
         self.keys = []
         self.notes = []
+
+        port = mido.open_input('xyz', virtual=True)
+        print(mido.get_output_names())
+        self.midiout = mido.open_output('xyz:xyz 129:0')
 
         """
         pixel_pin = pixel_pin_x
@@ -119,100 +121,24 @@ class Piano:
         else: 
             print("Invalid Scale Input")
 
-    def parseSongNew(self, song): 
-        self.song = song
-        #print(pygame.mixer.get_num_channels())
-        #chan = pygame.mixer.find_channel()
+    def parseSongMidi(self, midiSong): 
 
         delay = 3
         # Strips the newline character
-        mid = mido.MidiFile(song)
-        delay_constant = 0.8
+        mid = mido.MidiFile(midiSong)
         for msg in mid.play():
             found = False
-            #print(msg)
-            if(msg.type == 'note_on'):
+            if(msg.channel == 0 or msg.channel == 1):
+                self.midiout.send(msg)
+                #print(msg)
                 for key in self.keys:
                     if msg.note == key.getNote().getMidiNumber():
                         #print("note found")
-                        found = True
-                        key.playSoundSong()
-                    # we still want to play the note even if it istn't currently active for a key
-                    if not found: 
-                        for note in self.notes:
-                            if msg.note == note.getMidiNumber():
-                                #print("note found")
-                                found = True
-                                note.playSound()
+                        if(msg.type == 'note_on'):
+                            print("key.lightKey()")
+                        if(msg.type == 'note_off'):
+                            print("key.unlightKey()")
 
-            if(msg.time > 0):
-                time.sleep(msg.time * delay_constant)
-        
-    def parseSong(self, song): 
-        self.song = song
-        path = 'Songs/' + song
-        f = open(path, 'r')
-        lines = f.readlines()
-        #print(pygame.mixer.get_num_channels())
-        #chan = pygame.mixer.find_channel()
-        
-        count = 0
-        allowPlay = False
-        nextLineParseSpeed = False
-
-        delay = 0.09
-        # Strips the newline character
-        for line in lines:
-            values = []
-            parsedNotes = []
-            found = False
-            
-            count += 1
-            content = line.strip()
-            
-            #print("Line{}: {}".format(count, content))
-            if allowPlay:
-                #print("z")
-                parsedNotes = content.split(" ")
-                for noteRead in parsedNotes: 
-                    found = False
-                    #print(noteRead)
-                    if (noteRead == "|"): 
-                        pass
-                    elif (noteRead == "...") or (noteRead == "---"): 
-                        time.sleep(delay)
-                    else: 
-                        for key in self.keys:
-                            if noteRead == key.getNote().getName():
-                                #print("note found")
-                                found = True
-                                key.playSoundSong()
-                        # we still want to play the note even if it istn't currently active for a key
-                        if not found: 
-                            for note in self.notes:
-                                if noteRead == note.getName():
-                                    #print("note found")
-                                    found = True
-                                    note.playSound()
-                        if not found:
-                            pass
-                            #print(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NOTE NOT FOUND !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" )
-                        time.sleep(delay) # speed
-            elif nextLineParseSpeed: 
-                values = content.split(":")
-                #speed = int(values[0])/int(values[1])
-                nextLineParseSpeed = False
-            elif content.find("SPEED") != -1:
-                nextLineParseSpeed = True
-                print("x")
-            elif content.find("VOICE0") != -1:
-                break
-            elif content.find("VOICE") != -1:
-                allowPlay = True 
-                print("y")
-            
-
-                    #key.stopSoundSong()
 
 class Note:
     def __init__(self, name, sound, midiNumber): 

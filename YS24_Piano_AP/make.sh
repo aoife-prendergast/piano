@@ -1,3 +1,3 @@
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+python3 -m venv newvenv
+source newvenv/bin/activate
+newvenv/bin/pip install -r requirements.txt
