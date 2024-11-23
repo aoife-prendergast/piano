@@ -117,7 +117,7 @@ def main(args):
 
     pixel_pin = board.D18
     pixel_num = 2249
-    pixels = neopixel.NeoPixel(pixel_pin, pixel_num, brightness=0.3, auto_write=False)
+    pixels = neopixel.NeoPixel(pixel_pin, pixel_num, brightness=1, auto_write=False)
 
     key1map = helper.PixelMap(pixels, PianoPixelMap.key_1_pixel_map, individual_pixels=True)
     key2map = helper.PixelMap(pixels, PianoPixelMap.key_2_pixel_map, individual_pixels=True)
@@ -242,6 +242,7 @@ def main(args):
     piano.addKey(key_11)
     piano.addKey(key_12)
 
+    """
     piano.addKey(key_13)
     piano.addKey(key_14)
     piano.addKey(key_15)
@@ -254,7 +255,7 @@ def main(args):
     piano.addKey(key_22)
     piano.addKey(key_23)
     piano.addKey(key_24)
-    
+    """
 
     piano.addNotes([Cn2,Cs2,Dn2,Ds2,En2,Fn2,Fs2,Gn2,Gs2,An2,As2,Bn2])
     piano.addNotes([Cn3,Cs3,Dn3,Ds3,En3,Fn3,Fs3,Gn3,Gs3,An3,As3,Bn3])
@@ -307,6 +308,18 @@ def main(args):
             print("User input to set scale:")
             scale_select = int(input())
             piano.setScale(scale_select)
+
+        elif game == 5: 
+            print("\n ")
+            midiSong = 'midi_songs/Billy Joel - Piano Man.mid'
+            print("Time to play Deck the halls:")
+            piano.parseSongMidi(midiSong)
+
+        elif game == 6: 
+            print("\n ")
+            midiSong = 'midi_songs/cheers-3.mid'
+            print("Time to play Deck the halls:")
+            piano.parseSongMidi(midiSong)
             
         elif game == 0:
             print("\nDecision to end the progam")

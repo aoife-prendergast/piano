@@ -47,6 +47,7 @@ import serial.tools.list_ports
 import digitalio
 from pixel_mapping import PianoPixelMap
 import serial
+import glob
 """
 global pixel_pin
 global pixel_num 
@@ -67,10 +68,22 @@ class Piano:
         print(mido.get_output_names())
         midioutPort = mido.open_output('xyz:xyz 129:0')
         
-        print(list(serial.tools.list_ports.comports()))
+        temp_list = glob.glob ('/dev/tty[A-Za-z]*')
 
-        self.leftSTMComm = serial.Serial('COM4',baudrate=115200,)
-        self.rightSTMComm = serial.Serial('COM5',baudrate=115200,)
+        result = []
+        for a_port in temp_list:
+
+            try:
+                s = serial.Serial(a_port)
+                s.close()
+                result.append(a_port)
+            except serial.SerialException:
+                pass
+
+        print(result)
+
+        self.leftSTMComm = serial.Serial("/dev/ttyACM0",baudrate=115200,)
+        #self.rightSTMComm = serial.Serial('COM5',baudrate=115200,)
 
         """
         pixel_pin = pixel_pin_x
@@ -98,24 +111,27 @@ class Piano:
 
             #read left STM values
             self.leftSTMComm.write(query.encode())
+            time.sleep(0.1)
             leftReturn = self.leftSTMComm.read()
 
             #read right STM values
-            self.rightSTMComm.write("ADDR:777:ADC:MEAS:VOLT 1.0 (@6)\n")
-            rightReturn = self.rightSTMComm.read()
+            #self.rightSTMComm.write("ADDR:777:ADC:MEAS:VOLT 1.0 (@6)\n")
+            #rightReturn = self.rightSTMComm.read()
 
             #only continue if both ports turned status
-            if leftReturn and rightReturn: 
-                combined = leftReturn.split(", ") + rightReturn.split(", ")
+            if leftReturn: 
+                print(leftReturn)
+                combined = leftReturn.split(", ")
+                #combined = leftReturn.split(", ") + rightReturn.split(", ")
                 for key,val in enumerate(self.keys):
-                    if key.getState() != combined[val]
+                    if key.getState() != combined[val]:
                         #there has been a state change
                         if key.getState() == 1:
                             key.NotePressed()
                         else: 
                             key.noteReleased()
         
-        time.sleep(5)
+            time.sleep(0.5)
                     
     def countKeys(self):
         return self.noOfKeys

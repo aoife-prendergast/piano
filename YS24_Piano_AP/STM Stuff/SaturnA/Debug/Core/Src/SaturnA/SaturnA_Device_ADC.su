@@ -1,0 +1,12 @@
+../Core/Src/SaturnA/SaturnA_Device_ADC.c:64:7:ADC_InitializeAll	48	static
+../Core/Src/SaturnA/SaturnA_Device_ADC.c:144:6:ADC_write	16	static
+../Core/Src/SaturnA/SaturnA_Device_ADC.c:151:6:ADC_read	24	static
+../Core/Src/SaturnA/SaturnA_Device_ADC.c:165:6:ADC_read_id	32	static
+../Core/Src/SaturnA/SaturnA_Device_ADC.c:179:6:ADC_read_test	32	static
+../Core/Src/SaturnA/SaturnA_Device_ADC.c:204:6:ADC_GPIO3_Toggle	16	static
+../Core/Src/SaturnA/SaturnA_Device_ADC.c:209:6:ADC_GPIO3_On	16	static
+../Core/Src/SaturnA/SaturnA_Device_ADC.c:214:6:ADC_GPIO3_Off	16	static
+../Core/Src/SaturnA/SaturnA_Device_ADC.c:219:7:ADC_decode	8	static
+../Core/Src/SaturnA/SaturnA_Device_ADC.c:235:6:ADC_All_Channels	168	static
+../Core/Src/SaturnA/SaturnA_Device_ADC.c:28:7:ADC_Execute	24	static
+../Core/Src/SaturnA/SaturnA_Device_ADC.c:274:6:ADC_Callibrate	48	static

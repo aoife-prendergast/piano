@@ -1,0 +1,4 @@
+../Core/Src/SaturnA/SaturnA.c:23:6:initializeSaturn	1
+../Core/Src/SaturnA/SaturnA.c:63:6:initializeDrivers	1
+../Core/Src/SaturnA/SaturnA.c:90:7:SaturnParseAndExecuteSCPI	43
+../Core/Src/SaturnA/SaturnA.c:235:7:SaturnTestValidSCPI	4
