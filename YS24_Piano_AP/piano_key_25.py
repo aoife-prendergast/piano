@@ -43,14 +43,15 @@ from adafruit_led_animation.animation.chase import Chase
 from adafruit_led_animation.animation.rainbowchase import RainbowChase
 from adafruit_led_animation.animation.solid import Solid
 from adafruit_led_animation.sequence import AnimationSequence
+import serial.tools.list_ports
 import digitalio
 from pixel_mapping import PianoPixelMap
+import serial
 """
 global pixel_pin
 global pixel_num 
 global pixels
 """
-
 midioutPort = mido.open_output('xyz:xyz 129:0')
 
 class Piano: 
@@ -65,6 +66,11 @@ class Piano:
         port = mido.open_input('xyz', virtual=True)
         print(mido.get_output_names())
         midioutPort = mido.open_output('xyz:xyz 129:0')
+        
+        print(list(serial.tools.list_ports.comports()))
+
+        self.leftSTMComm = serial.Serial('COM4',baudrate=115200,)
+        self.rightSTMComm = serial.Serial('COM5',baudrate=115200,)
 
         """
         pixel_pin = pixel_pin_x
@@ -87,22 +93,30 @@ class Piano:
 
     def loopKeys(self, active):
         print("Looping all keys")
-        for key in self.keys:
-            if active:
-                key.makeActive()
-            else: 
-                key.makeUnactive()
-        """
-        time_old = time.perf_counter()
-        time_taken = time.perf_counter()
-        for key in self.keys:
-            key.playSound()
+        while True:
+            query = str(f"ADDR:777:ADC:MEAS:VOLT 1.0 (@6)\n")
 
-            time_taken = time.perf_counter() - time_old
-            print("Key: ", key.getName(), key.checkForce(), " -> time: ", time_taken)
-            time_old = time_taken
-        """
-                
+            #read left STM values
+            self.leftSTMComm.write(query.encode())
+            leftReturn = self.leftSTMComm.read()
+
+            #read right STM values
+            self.rightSTMComm.write("ADDR:777:ADC:MEAS:VOLT 1.0 (@6)\n")
+            rightReturn = self.rightSTMComm.read()
+
+            #only continue if both ports turned status
+            if leftReturn and rightReturn: 
+                combined = leftReturn.split(", ") + rightReturn.split(", ")
+                for key,val in enumerate(self.keys):
+                    if key.getState() != combined[val]
+                        #there has been a state change
+                        if key.getState() == 1:
+                            key.NotePressed()
+                        else: 
+                            key.noteReleased()
+        
+        time.sleep(5)
+                    
     def countKeys(self):
         return self.noOfKeys
             
@@ -174,10 +188,9 @@ class Note:
         return self.midiNumber
 
 class Key: 
-    def __init__(self, sensor, note, pixel_mappa = None): 
-        self.sensor = sensor 
+    def __init__(self, note, pixel_mappa = None): 
         self.note = note
-        self.state = False
+        self.state = 0
         self.releaseSincePlayed = True
         self.led_on_time = 1.0
         self.callback_number = 0
@@ -216,6 +229,7 @@ class Key:
         self.dark.animate()
         
     # Methods
+    """
     # configuring interrupts
     def makeActive(self):
         self.sensor.when_released = self.notePressed #this is an interupt
@@ -225,6 +239,7 @@ class Key:
     def makeUnactive(self):
         self.sensor.when_released = None
         self.sensor.when_pressed = None
+    """
     def notePressed(self): 
         print("PLAY: ", self.note.getName())
         self.note.playSound()
@@ -260,7 +275,7 @@ class Key:
     def getName(self): 
         return self.name
          
-    def getSensor(self): 
+    def getSensor(self):
         return self.sensor
         
     def setNote(self, note): 
@@ -271,6 +286,9 @@ class Key:
     
     def getState(self): 
         return self.state
+    
+    def setState(self, state):
+        self.state = state
 
     def setActiveColour(self, input): 
         self.light = Solid(pixel_object=self.map, color =  input)
