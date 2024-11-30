@@ -84,17 +84,30 @@ class Piano:
 
         print(result)
 
+<<<<<<< Updated upstream
 <<<<<<< HEAD
         self.leftSTMComm = serial.Serial("/dev/ttyACM0",baudrate=115200,)
 =======
         #self.leftSTMComm = serial.Serial("/dev/ttyACM0",baudrate=115200,)
 >>>>>>> ebbd4e74fdcc9eb208b6e0fe8663a8073344bd70
+=======
+        #self.leftSTMComm = serial.Serial("/dev/ttyACM0",baudrate=115200,)
+>>>>>>> Stashed changes
         #self.rightSTMComm = serial.Serial('COM5',baudrate=115200,)
 
         """
         pixel_pin = pixel_pin_x
         pixel_num = pixel_pin_x
         pixels = pixels_x
+        """
+        print("adc left")
+        self.left_adc = ADC(0)
+        self.left_adc.adc_setup()
+
+        """
+        print("adc right")
+        self.right_adc = ADC(1)
+        self.right_adc.adc_setup()
         """
 
         self.left_adc = ADC()
@@ -116,6 +129,7 @@ class Piano:
     def loopKeys(self, active):
         print("Looping all keys")
         while True:
+<<<<<<< Updated upstream
 <<<<<<< HEAD
             query = str(f"ADDR:777:ADC:MEAS:VOLT 1.0 (@6)\n")
 
@@ -145,6 +159,10 @@ class Piano:
 =======
             combined = self.left_adc.adc_read()
             #print(combined)
+=======
+            combined = self.left_adc.adc_read()
+            print(combined)
+>>>>>>> Stashed changes
             count = 0
             for key in self.keys:
                 if key.getState() != combined[count]:
@@ -154,8 +172,12 @@ class Piano:
                     else: 
                         key.noteReleased()
                 count+=1
+<<<<<<< Updated upstream
             time.sleep(0.0050)
 >>>>>>> ebbd4e74fdcc9eb208b6e0fe8663a8073344bd70
+=======
+            time.sleep(0.01)
+>>>>>>> Stashed changes
                     
     def countKeys(self):
         return self.noOfKeys

@@ -21,8 +21,13 @@ import time
 #------------------------------------------------------------------------
 # SPI and ADC Setup
 class ADC: 
+<<<<<<< Updated upstream
     def __init__(self): 
         self.spi = adc_spi.spi_open()
+=======
+    def __init__(self, pin): 
+        self.spi = adc_spi.spi_open(pin)
+>>>>>>> Stashed changes
 
     def adc_setup(self):
         adc_spi.write_adc(self.spi,register_map['ADCMODE'],0x8600)
@@ -71,6 +76,12 @@ class ADC:
         byte0 = '{0:08b}'.format(response[1])
         byte1 = '{0:08b}'.format(response[2])
         byte2 = '{0:08b}'.format(response[3])
+<<<<<<< Updated upstream
+=======
+        
+        print(hex(int(str(byte0+byte1),2)))
+
+>>>>>>> Stashed changes
 
         if hex(int(str(byte0+byte1),2)) == "0x38de":
             print("Comms Connected")
@@ -81,7 +92,11 @@ class ADC:
 
     def adc_read(self):
         key_trigger = [0]*12
+<<<<<<< Updated upstream
         on_threshold = 300000
+=======
+        on_threshold = 150000
+>>>>>>> Stashed changes
         for i in range (12):
             adc_spi.GPIO3_LO(self.spi)
             adc_spi.GPIO3_HI(self.spi)
@@ -92,6 +107,7 @@ class ADC:
             byte0 = '{0:08b}'.format(response[1])
             byte1 = '{0:08b}'.format(response[2])
             byte2 = '{0:08b}'.format(response[3])
+<<<<<<< Updated upstream
             val = int(str(byte0+byte1+byte0),2)
 
             if response[4] < 12: #check if a valid channel
@@ -99,6 +115,22 @@ class ADC:
                     key_trigger[response[4]] = 0
                 else:
                     key_trigger[response[4]] = 1
+=======
+
+            val = int(str(byte0+byte1+byte0),2)
+
+            response[4] = response[4] & 0b00001111
+
+            byte3 = '{0:08b}'.format(response[4])
+            channel = int(str(byte3),2)
+            print(channel, " ", val)
+
+            if response[4] < 12: #check if a valid channel
+                if val > on_threshold:
+                    key_trigger[response[4]] = 1
+                else:
+                    key_trigger[response[4]] = 0
+>>>>>>> Stashed changes
 
         #print(key_trigger)
         return key_trigger

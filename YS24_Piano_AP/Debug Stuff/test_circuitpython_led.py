@@ -15,7 +15,7 @@ num_pixels = 2252
 
 pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=1)
 blink = Blink(pixels, 1, color.PURPLE)
-rainbow = Rainbow(pixels, speed=0.075, period=5, step=1)
+rainbow = Rainbow(pixels, speed=0.0075, period=5, step=0.1)
 comet = Comet(
     pixels, speed=0.1, tail_length=10, reverse=False, color=color.GREEN, bounce=True
 )

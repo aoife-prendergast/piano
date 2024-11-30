@@ -116,7 +116,7 @@ def main(args):
     Ds6 = Note("D#6",87)
 
     pixel_pin = board.D18
-    pixel_num = 2249
+    pixel_num = 2245
     pixels = neopixel.NeoPixel(pixel_pin, pixel_num, brightness=1, auto_write=False)
 
     key1map = helper.PixelMap(pixels, PianoPixelMap.key_1_pixel_map, individual_pixels=True)
@@ -144,33 +144,35 @@ def main(args):
     key23map = helper.PixelMap(pixels, PianoPixelMap.key_23_pixel_map, individual_pixels=True)
     key24map = helper.PixelMap(pixels, PianoPixelMap.key_24_pixel_map, individual_pixels=True)
 
-    key_1 =  Key(Cn4, key1map)
-    key_3 =  Key(Dn4, key3map)
-    key_5 =  Key(En4, key5map)
-    key_6 =  Key(Fn4, key6map)
-    key_8 =  Key(Gn4, key8map)
-    key_10 = Key(An4, key10map)
-    key_12 = Key(Bn4, key12map)
+
+    key_1 =  Key(Cn3, key1map)
+    key_3 =  Key(Dn3, key3map)
+    key_5 =  Key(En3, key5map)
+    key_6 =  Key(Fn3, key6map)
+    key_8 =  Key(Gn3, key8map)
+    key_10 = Key(An3, key10map)
+    key_12 = Key(Bn3, key12map)
     
-    key_2 =  Key(Cs4, key2map)
-    key_4 =  Key(Ds4, key4map)
-    key_7 =  Key(Fs4, key7map)
-    key_9 =  Key(Gs4, key9map)
-    key_11 = Key(As4, key11map)
+    key_2 =  Key(Cs3, key2map)
+    key_4 =  Key(Ds3, key4map)
+    key_7 =  Key(Fs3, key7map)
+    key_9 =  Key(Gs3, key9map)
+    key_11 = Key(As3, key11map)
+    
+    
+    key_13 = Key(Cn4, key13map)
+    key_15 = Key(Dn4, key15map)
+    key_17 = Key(En4, key17map)
+    key_18 = Key(Fn4, key18map)
+    key_20 = Key(Gn4, key20map)
+    key_22 = Key(An4, key22map)
+    key_24 = Key(Bn4, key24map)
 
-    key_13 = Key(Cn5, key13map)
-    key_15 = Key(Dn5, key15map)
-    key_17 = Key(En5, key17map)
-    key_18 = Key(Fn5, key18map)
-    key_20 = Key(Gn5, key20map)
-    key_22 = Key(An5, key22map)
-    key_24 = Key(Bn5, key24map)
-
-    key_14 = Key(Cs5, key14map)
-    key_16 = Key(Ds5, key16map)
-    key_19 = Key(Fs5, key19map)
-    key_21 = Key(Gs5, key21map)
-    key_23 = Key(As5, key23map)
+    key_14 = Key(Cs4, key14map)
+    key_16 = Key(Ds4, key16map)
+    key_19 = Key(Fs4, key19map)
+    key_21 = Key(Gs4, key21map)
+    key_23 = Key(As4, key23map)
     
     #unactive colors for Sharps
     sharp_default = (255,0,0)
@@ -229,6 +231,8 @@ def main(args):
     piano.addKey(key_As2)
     piano.addKey(key_Bn2)
     """
+
+    """
     piano.addKey(key_1)
     piano.addKey(key_2)
     piano.addKey(key_3)
@@ -241,7 +245,6 @@ def main(args):
     piano.addKey(key_10)
     piano.addKey(key_11)
     piano.addKey(key_12)
-
     """
     piano.addKey(key_13)
     piano.addKey(key_14)
@@ -255,7 +258,8 @@ def main(args):
     piano.addKey(key_22)
     piano.addKey(key_23)
     piano.addKey(key_24)
-    """
+    
+    
 
     piano.addNotes([Cn2,Cs2,Dn2,Ds2,En2,Fn2,Fs2,Gn2,Gs2,An2,As2,Bn2])
     piano.addNotes([Cn3,Cs3,Dn3,Ds3,En3,Fn3,Fs3,Gn3,Gs3,An3,As3,Bn3])

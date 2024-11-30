@@ -40,7 +40,11 @@ register_map = {'STATUS':0x0,
              'FILT_CON6':0x2E,
              'FILT_CON7':0x2F}
 
+<<<<<<< Updated upstream
 def spi_open():
+=======
+def spi_open(device):
+>>>>>>> Stashed changes
     spi = spidev.SpiDev()
     spi.open(0,0)
     spi.mode = 0b11
