@@ -30,6 +30,8 @@ from threading import Thread
 from time import sleep
 import mido
 
+from adc import ADC
+
 from pydub import AudioSegment
 
 from adafruit_led_animation import helper
@@ -64,7 +66,7 @@ class Piano:
         self.keys = []
         self.notes = []
 
-        port = mido.open_input('xyz', virtual=True)
+        port = mido.open_input('abc', virtual=True)
         print(mido.get_output_names())
         midioutPort = mido.open_output('xyz:xyz 129:0')
         
@@ -82,7 +84,11 @@ class Piano:
 
         print(result)
 
+<<<<<<< HEAD
         self.leftSTMComm = serial.Serial("/dev/ttyACM0",baudrate=115200,)
+=======
+        #self.leftSTMComm = serial.Serial("/dev/ttyACM0",baudrate=115200,)
+>>>>>>> ebbd4e74fdcc9eb208b6e0fe8663a8073344bd70
         #self.rightSTMComm = serial.Serial('COM5',baudrate=115200,)
 
         """
@@ -90,6 +96,9 @@ class Piano:
         pixel_num = pixel_pin_x
         pixels = pixels_x
         """
+
+        self.left_adc = ADC()
+        self.left_adc.adc_setup()
 
     def addKey(self, key):
         self.keys.append(key)
@@ -107,6 +116,7 @@ class Piano:
     def loopKeys(self, active):
         print("Looping all keys")
         while True:
+<<<<<<< HEAD
             query = str(f"ADDR:777:ADC:MEAS:VOLT 1.0 (@6)\n")
 
             #read left STM values
@@ -132,6 +142,20 @@ class Piano:
                             key.noteReleased()
         
             time.sleep(0.5)
+=======
+            combined = self.left_adc.adc_read()
+            #print(combined)
+            count = 0
+            for key in self.keys:
+                if key.getState() != combined[count]:
+                    #there has been a state change
+                    if combined[count]== 1:
+                        key.notePressed()
+                    else: 
+                        key.noteReleased()
+                count+=1
+            time.sleep(0.0050)
+>>>>>>> ebbd4e74fdcc9eb208b6e0fe8663a8073344bd70
                     
     def countKeys(self):
         return self.noOfKeys
@@ -259,11 +283,11 @@ class Key:
     def notePressed(self): 
         print("PLAY: ", self.note.getName())
         self.note.playSound()
-        
         # update LEDs here 
         self.led_on()
         #self.led_timer = threading.Timer(self.led_on_time, self.led_off_callback, (self.callback_number,))
         #self.led_timer.start()
+        self.state = 1
 
     def noteReleased(self): 
         print("RELEASE: ", self.note.getName())
@@ -272,6 +296,7 @@ class Key:
         # update LEDs here - Leave LEDs on for as long as key pressed
         self.led_off()
         #self.led_timer.cancel()
+        self.state = 0
             
     def selfPlayActive(self):
         # update LEDs here 
@@ -287,9 +312,6 @@ class Key:
     # Getter and Setters
     def setSensor(self, sensor):
         self.sensor = sensor
-      
-    def getName(self): 
-        return self.name
          
     def getSensor(self):
         return self.sensor

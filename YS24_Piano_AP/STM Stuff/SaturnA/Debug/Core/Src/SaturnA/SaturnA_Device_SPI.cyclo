@@ -1,0 +1,9 @@
+../Core/Src/SaturnA/SaturnA_Device_SPI.c:91:7:SPI_InitializeAll	1
+../Core/Src/SaturnA/SaturnA_Device_SPI.c:103:7:SPI_DRST	1
+../Core/Src/SaturnA/SaturnA_Device_SPI.c:112:7:SPI_WRITE_BITS	1
+../Core/Src/SaturnA/SaturnA_Device_SPI.c:130:7:SPI_SOUR_BYTE	2
+../Core/Src/SaturnA/SaturnA_Device_SPI.c:163:9:SPI_SOUR_BITS	1
+../Core/Src/SaturnA/SaturnA_Device_SPI.c:176:9:SPI_MEAS_BYTE	3
+../Core/Src/SaturnA/SaturnA_Device_SPI.c:198:9:SPI_SOUR_MODE	1
+../Core/Src/SaturnA/SaturnA_Device_SPI.c:210:7:SPI_toString	9
+../Core/Src/SaturnA/SaturnA_Device_SPI.c:26:7:SPI_Execute	11

@@ -1,0 +1,4 @@
+../Core/Src/SaturnA/SaturnA.c:23:6:initializeSaturn	8	static
+../Core/Src/SaturnA/SaturnA.c:63:6:initializeDrivers	0	static
+../Core/Src/SaturnA/SaturnA.c:90:7:SaturnParseAndExecuteSCPI	240	static
+../Core/Src/SaturnA/SaturnA.c:235:7:SaturnTestValidSCPI	8	static
