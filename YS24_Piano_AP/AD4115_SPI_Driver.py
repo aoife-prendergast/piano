@@ -41,7 +41,11 @@ register_map = {'STATUS':0x0,
              'FILT_CON7':0x2F}
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 def spi_open():
+=======
+def spi_open(device):
+>>>>>>> Stashed changes
 =======
 def spi_open(device):
 >>>>>>> Stashed changes
