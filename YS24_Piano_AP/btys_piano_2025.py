@@ -31,6 +31,7 @@ import time
 import random
 import simpleaudio
 from gpiozero import *
+from pathlib import Path
 import RPi.GPIO as GPIO
 
 from adafruit_led_animation import helper
@@ -53,6 +54,7 @@ from pixel_mapping import PianoPixelMap
 
 import mido
 import rtmidi
+
 
 def main(args):
     
@@ -232,7 +234,7 @@ def main(args):
     piano.addKey(key_Bn2)
     """
 
-    """
+    
     piano.addKey(key_1)
     piano.addKey(key_2)
     piano.addKey(key_3)
@@ -245,7 +247,7 @@ def main(args):
     piano.addKey(key_10)
     piano.addKey(key_11)
     piano.addKey(key_12)
-    """
+    
     piano.addKey(key_13)
     piano.addKey(key_14)
     piano.addKey(key_15)
@@ -315,15 +317,24 @@ def main(args):
 
         elif game == 5: 
             print("\n ")
-            midiSong = 'midi_songs/Billy Joel - Piano Man.mid'
-            print("Time to play Deck the halls:")
+            pathlist = Path("midi_songs/").rglob('*.mid')
+
+            print("\What song would you like to play:")
+
+            song = int(input())
+            count = 0
+            for path in pathlist:
+                if count == song: 
+                    val = path
+                    break;
+                count = count + 1
+
+            midiSong = str(val)
+            print(midiSong)
+            print("Time to play" + midiSong)
             piano.parseSongMidi(midiSong)
 
-        elif game == 6: 
-            print("\n ")
-            midiSong = 'midi_songs/cheers-3.mid'
-            print("Time to play Deck the halls:")
-            piano.parseSongMidi(midiSong)
+
             
         elif game == 0:
             print("\nDecision to end the progam")
