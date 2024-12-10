@@ -25,31 +25,11 @@
 from piano_key_25 import Key 
 from piano_key_25 import Piano
 from piano_key_25 import Note
-import pygame
-from pygame import mixer
 import time
 import random
-import simpleaudio
-from gpiozero import *
+
 from pathlib import Path
-import RPi.GPIO as GPIO
 
-from adafruit_led_animation import helper
-from adafruit_led_animation.color import *
-import board
-import neopixel
-from neopixel import NeoPixel
-from pydub import AudioSegment
-from pydub.playback import _play_with_simpleaudio
-
-from adafruit_led_animation.animation.comet import Comet
-from adafruit_led_animation.animation.rainbowcomet import RainbowComet
-from adafruit_led_animation.animation.rainbowchase import RainbowChase
-from adafruit_led_animation.animation.chase import Chase
-from adafruit_led_animation.animation.rainbow import Rainbow
-from adafruit_led_animation.sequence import AnimationSequence
-
-import digitalio
 from pixel_mapping import PianoPixelMap
 
 import mido
@@ -58,11 +38,6 @@ import sys
 
 
 def main(args):
-    
-    #pygame.init()
-    #pygame.mixer.init(44100, -16,2,2048)
-
-    # print(pygame.mixer.get_init())
     
     #the sounds 
     Cn2 = Note("Cn2",36)
@@ -118,6 +93,7 @@ def main(args):
     Dn6 = Note("Dn6",86)
     Ds6 = Note("D#6",87)
 
+    """
     pixel_pin = board.D18
     pixel_num = 2245
     pixels = neopixel.NeoPixel(pixel_pin, pixel_num, brightness=1, auto_write=False)
@@ -146,36 +122,37 @@ def main(args):
     key22map = helper.PixelMap(pixels, PianoPixelMap.key_22_pixel_map, individual_pixels=True)
     key23map = helper.PixelMap(pixels, PianoPixelMap.key_23_pixel_map, individual_pixels=True)
     key24map = helper.PixelMap(pixels, PianoPixelMap.key_24_pixel_map, individual_pixels=True)
+    """
 
 
-    key_1 =  Key(Cn3, key1map)
-    key_3 =  Key(Dn3, key3map)
-    key_5 =  Key(En3, key5map)
-    key_6 =  Key(Fn3, key6map)
-    key_8 =  Key(Gn3, key8map)
-    key_10 = Key(An3, key10map)
-    key_12 = Key(Bn3, key12map)
+    key_1 =  Key(Cn3)
+    key_3 =  Key(Dn3)
+    key_5 =  Key(En3)
+    key_6 =  Key(Fn3)
+    key_8 =  Key(Gn3)
+    key_10 = Key(An3)
+    key_12 = Key(Bn3)
     
-    key_2 =  Key(Cs3, key2map)
-    key_4 =  Key(Ds3, key4map)
-    key_7 =  Key(Fs3, key7map)
-    key_9 =  Key(Gs3, key9map)
-    key_11 = Key(As3, key11map)
+    key_2 =  Key(Cs3)
+    key_4 =  Key(Ds3)
+    key_7 =  Key(Fs3)
+    key_9 =  Key(Gs3)
+    key_11 = Key(As3)
     
     
-    key_13 = Key(Cn4, key13map)
-    key_15 = Key(Dn4, key15map)
-    key_17 = Key(En4, key17map)
-    key_18 = Key(Fn4, key18map)
-    key_20 = Key(Gn4, key20map)
-    key_22 = Key(An4, key22map)
-    key_24 = Key(Bn4, key24map)
+    key_13 = Key(Cn4)
+    key_15 = Key(Dn4)
+    key_17 = Key(En4)
+    key_18 = Key(Fn4)
+    key_20 = Key(Gn4)
+    key_22 = Key(An4)
+    key_24 = Key(Bn4)
 
-    key_14 = Key(Cs4, key14map)
-    key_16 = Key(Ds4, key16map)
-    key_19 = Key(Fs4, key19map)
-    key_21 = Key(Gs4, key21map)
-    key_23 = Key(As4, key23map)
+    key_14 = Key(Cs4)
+    key_16 = Key(Ds4)
+    key_19 = Key(Fs4)
+    key_21 = Key(Gs4)
+    key_23 = Key(As4)
     
     #unactive colors for Sharps
     sharp_default = (255,0,0)
@@ -262,8 +239,6 @@ def main(args):
     piano.addKey(key_23)
     piano.addKey(key_24)
     
-    
-
     piano.addNotes([Cn2,Cs2,Dn2,Ds2,En2,Fn2,Fs2,Gn2,Gs2,An2,As2,Bn2])
     piano.addNotes([Cn3,Cs3,Dn3,Ds3,En3,Fn3,Fs3,Gn3,Gs3,An3,As3,Bn3])
     piano.addNotes([Cn4,Cs4,Dn4,Ds4,En4,Fn4,Fs4,Gn4,Gs4,An4,As4,Bn4])
@@ -324,7 +299,7 @@ def main(args):
             print("\n ")
             pathlist = Path("midi_songs/").rglob('*.mid')
 
-            print("\What song would you like to play:")
+            print("\nWhat song would you like to play:")
 
             song = int(input())
             count = 0
@@ -338,8 +313,6 @@ def main(args):
             print(midiSong)
             print("Time to play" + midiSong)
             piano.parseSongMidi(midiSong)
-
-
             
         elif game == 0:
             print("\nExiting the program.")

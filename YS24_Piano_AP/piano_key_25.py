@@ -22,59 +22,25 @@
 #  
 #  
 
-from gpiozero import *
-import time
-import threading
-from threading import Thread 
-import mido
-
-from pydub import AudioSegment
-
-from adafruit_led_animation import helper
-from adafruit_led_animation.color import *
-import board
-import neopixel
-from adafruit_led_animation.animation.comet import Comet
-from adafruit_led_animation.animation.rainbowcomet import RainbowComet
-from adafruit_led_animation.animation.rainbowchase import RainbowChase
-from adafruit_led_animation.animation.chase import Chase
-from adafruit_led_animation.animation.rainbowchase import RainbowChase
-from adafruit_led_animation.animation.solid import Solid
-from adafruit_led_animation.sequence import AnimationSequence
-import serial.tools.list_ports
-import digitalio
-from pixel_mapping import PianoPixelMap
-import serial
-import glob
-"""
-global pixel_pin
-global pixel_num 
-global pixels
-"""
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-#
-#  piano_key.py
-#  
-#  Optimized Version
-
 import time
 import threading
 import mido
 import serial
 import glob
-
-from adafruit_led_animation.color import RED
-from adafruit_led_animation.animation.solid import Solid
-from pydub import AudioSegment
-from pixel_mapping import PianoPixelMap
+import sys
 
 
 class SerialPortManager:
     @staticmethod
     def find_ports():
         """Discover available serial ports."""
-        ports = glob.glob('/dev/tty[A-Za-z]*')
+        
+        if sys.platform.startswith('win'):
+            ports = ['COM%s' % (i + 1) for i in range(256)]
+        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+            ports = glob.glob('/dev/tty[A-Za-z]*')
+        else: 
+            raise EnvironmentError('Unspoorted platform')
         valid_ports = []
         for port in ports:
             try:
@@ -137,18 +103,17 @@ class Piano:
         self.notes = []
         self.combined = [0] * 24
 
-        """
-        port = mido.open_input('abc', virtual=True)
+        midioutPort = mido.open_input('abc', virtual=True)
         print(mido.get_output_names())
-        """
+        
 
-        midioutPort = mido.open_output('xyz:xyz 129:0')
+        #midioutPort = mido.open_output('xyz:xyz 129:0')
         
         # Serial setup
         available_ports = SerialPortManager.find_ports()
         print("Available Ports:", available_ports)
-        self.left_comm = SerialPortManager.initialize_port("/dev/ttyACM0")
-        self.right_comm = SerialPortManager.initialize_port("/dev/ttyACM1")
+        self.left_comm = SerialPortManager.initialize_port('COM4') #Fix
+        self.right_comm = SerialPortManager.initialize_port('COM5') #Fix
 
         ADCInterface.adc_full_init(self.leftSTMComm)
         ADCInterface.adc_full_init(self.rightSTMComm)
@@ -282,12 +247,12 @@ class Key:
             #self.sensor._queue.start()
 
         # LEDs linked to key
-        self.map = pixel_mappa
+        #self.map = pixel_mappa
         self.LEDState = 0
 
         warm_white = (253, 244, 220)
-        self.dark = Solid(pixel_object=self.map, color = warm_white)
-        self.light = Solid(pixel_object=self.map, color =  RED)
+        # SEND COMMAND TO PI -> self.dark = Solid(pixel_object=self.map, color = warm_white)
+        # SEND COMMAND TO PI -> self.light = Solid(pixel_object=self.map, color =  RED)
 
         #self.led_timer = threading.Timer(0.1, None)
         
@@ -295,24 +260,19 @@ class Key:
         return self.note.name
 
     def setUnactiveState(self):
-        self.dark.animate()
+        print("Sending command to Pi") 
+        #self.dark.animate()
+        # SEND COMMAND TO PI 
 
     def led_on(self):
         # print("turned on LEDs ", self)
-        #self.callback_number += 1
         self.LEDState = 1
-        self.light.animate()
-
-    def led_off_callback(self, arg):
-        # wait for the latest callback before turning off
-        if(arg == self.callback_number):
-            #print("turned off LEDs ", self)
-            self.dark.animate()
+        # SEND COMMAND TO PI 
 
     def led_off(self):
         #print("turned off LEDs ", self)
         self.LEDState = 0
-        self.dark.animate()
+         # SEND COMMAND TO PI 
         
     # Methods
     """
@@ -375,7 +335,12 @@ class Key:
         self.state = state
 
     def setActiveColour(self, input): 
-        self.light = Solid(pixel_object=self.map, color =  input)
+        print('ok')
+        #self.light = Solid(pixel_object=self.map, color =  input)
+        # SEND COMMAND TO PI
 
     def setUnactiveColour(self, input): 
-        self.dark = Solid(pixel_object=self.map, color = input)
+        print('ok')
+        #self.dark = Solid(pixel_object=self.map, color = input)
+        # SEND COMMAND TO PI
+
