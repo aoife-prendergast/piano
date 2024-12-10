@@ -54,6 +54,7 @@ from pixel_mapping import PianoPixelMap
 
 import mido
 import rtmidi
+import sys
 
 
 def main(args):
@@ -280,7 +281,11 @@ def main(args):
         print("\t4 -> SET scale")
         print("\t0 -> END THE PROGRAM")
 
-        game = int(input())
+        try:
+            game = int(input("Enter your choice: "))
+        except ValueError:
+            print("Invalid input! Please enter a number.")
+            continue
         
         if game == 1: 
             print("\nEntering FREE PLAY MODE")
@@ -326,7 +331,7 @@ def main(args):
             for path in pathlist:
                 if count == song: 
                     val = path
-                    break;
+                    break
                 count = count + 1
 
             midiSong = str(val)
@@ -337,13 +342,12 @@ def main(args):
 
             
         elif game == 0:
-            print("\nDecision to end the progam")
-            break;
+            print("\nExiting the program.")
+            break
         else: 
             print("\nInvalid Input!!! Try again :)")
             
     return 0
 
 if __name__ == '__main__':
-    import sys
     sys.exit(main(sys.argv))

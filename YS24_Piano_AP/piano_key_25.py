@@ -23,14 +23,10 @@
 #  
 
 from gpiozero import *
-import pygame
 import time
 import threading
 from threading import Thread 
-from time import sleep
 import mido
-
-from adc import ADC
 
 from pydub import AudioSegment
 
@@ -55,45 +51,81 @@ global pixel_pin
 global pixel_num 
 global pixels
 """
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#  piano_key.py
+#  
+#  Optimized Version
+
+import time
+import threading
+import mido
+import serial
+import glob
+
+from adafruit_led_animation.color import RED
+from adafruit_led_animation.animation.solid import Solid
+from pydub import AudioSegment
+from pixel_mapping import PianoPixelMap
+
+
+class SerialPortManager:
+    @staticmethod
+    def find_ports():
+        """Discover available serial ports."""
+        ports = glob.glob('/dev/tty[A-Za-z]*')
+        valid_ports = []
+        for port in ports:
+            try:
+                with serial.Serial(port) as s:
+                    valid_ports.append(port)
+            except serial.SerialException:
+                pass
+        return valid_ports
+
+    @staticmethod
+    def initialize_port(port_path, baudrate=115200):
+        """Initialize a serial port."""
+        return serial.Serial(port_path, baudrate=baudrate)
+
+class ADCInterface:
+    @staticmethod
+    def send_command(comport, command, delay=0.2):
+        query = f"ADDR:777:ADC:MEAS:{command} 1.0 (@0)\n".encode()
+        comport.write(query)
+        time.sleep(delay)
+        return comport.read(comport.in_waiting).decode().strip()
+
+    @staticmethod
+    def initialize(comport):
+        return ADCInterface.send_command(comport, "BITS")
+
+    @staticmethod
+    def calibrate(comport):
+        return ADCInterface.send_command(comport, "TEMP")
+
+    @staticmethod
+    def reset_adc(comport):
+        return ADCInterface.send_command(comport, "LEVEL")
+
+    @staticmethod
+    def read_register(comport):
+        return ADCInterface.send_command(comport, "VOLT?")
+
+    @staticmethod
+    def read_adc(comport):
+        return ADCInterface.send_command(comport, "CURR")
+
+    @staticmethod
+    def full_init(comport):
+        ADCInterface.reset_adc(comport)
+        time.sleep(2)
+        ADCInterface.initialize(comport)
+        ADCInterface.read_register(comport)
+        ADCInterface.calibrate(comport)
+
 midioutPort = mido.open_output('xyz:xyz 129:0')
-
-def init(comport):
-    query = str(f"ADDR:777:ADC:MEAS:BITS 1.0 (@0)\n")
-
-    #read left STM values
-    comport.write(query.encode())
-    time.sleep(0.5)
-    leftReturn = comport.read(comport.in_waiting)
-    print(leftReturn)
-
-
-def calibrate(comport):
-    query = str(f"ADDR:777:ADC:MEAS:TEMP 1.0 (@0)\n")
-
-    #read left STM values
-    comport.write(query.encode())
-    time.sleep(0.2)
-    leftReturn = comport.read(comport.in_waiting)
-    print(leftReturn)
-
-def reset_adc(comport):
-    query = str(f"ADDR:777:ADC:MEAS:LEVEL 1.0 (@0)\n")
-
-    #read left STM values
-    comport.write(query.encode())
-    time.sleep(0.2)
-    leftReturn = comport.read(comport.in_waiting)
-    print(leftReturn)
-
-def read_reg(comport):
-    query = str(f"ADDR:777:ADC:MEAS:VOLT? 1.0 (@0)\n")
-
-    #read left STM values
-    comport.write(query.encode())
-    time.sleep(0.2)
-    leftReturn = comport.read(comport.in_waiting)
-    print(leftReturn)
-
 
 class Piano: 
     def __init__(self): 
@@ -103,64 +135,24 @@ class Piano:
         # key list
         self.keys = []
         self.notes = []
-        self.combined = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.combined = [0] * 24
 
+        """
         port = mido.open_input('abc', virtual=True)
         print(mido.get_output_names())
+        """
+
         midioutPort = mido.open_output('xyz:xyz 129:0')
         
-        temp_list = glob.glob ('/dev/tty[A-Za-z]*')
+        # Serial setup
+        available_ports = SerialPortManager.find_ports()
+        print("Available Ports:", available_ports)
+        self.left_comm = SerialPortManager.initialize_port("/dev/ttyACM0")
+        self.right_comm = SerialPortManager.initialize_port("/dev/ttyACM1")
 
-        result = []
-        for a_port in temp_list:
+        ADCInterface.adc_full_init(self.leftSTMComm)
+        ADCInterface.adc_full_init(self.rightSTMComm)
 
-            try:
-                s = serial.Serial(a_port)
-                s.close()
-                result.append(a_port)
-            except serial.SerialException:
-                pass
-
-        print(result)
-
-        
-
-        self.leftSTMComm = serial.Serial("/dev/ttyACM0",baudrate=115200,)
-        self.rightSTMComm = serial.Serial("/dev/ttyACM1",baudrate=115200,)
-
-        #self.compMidi = serial.Serial("/dev/ttyACM1",baudrate=115200,)
-
-        reset_adc(self.leftSTMComm)
-        time.sleep(2)
-        init(self.leftSTMComm)
-        read_reg(self.leftSTMComm)
-        calibrate(self.leftSTMComm)
-
-        reset_adc(self.rightSTMComm)
-        time.sleep(2)
-        init(self.rightSTMComm)
-        read_reg(self.rightSTMComm)
-        calibrate(self.rightSTMComm)
-        
-
-        self.led_update_freq = 0.05
-
-        """
-        pixel_pin = pixel_pin_x
-        pixel_num = pixel_pin_x
-        pixels = pixels_x
-        """
-        
-
-        """
-        print("adc left")
-        self.left_adc = ADC(0)
-        self.left_adc.adc_setup()
-
-        print("adc right")
-        self.right_adc = ADC(1)
-        self.right_adc.adc_setup()
-        """
 
     def addKey(self, key):
         self.keys.append(key)
@@ -176,56 +168,32 @@ class Piano:
             key.setUnactiveState()
 
     def loop_LEDs(self, num):
+        #used for self play - parse midi song
         print("thread started")
         
         while True:
-            for key in self.keys:
-                if key.getState() == 1:
-                    #print("turning on LED")
-                    #key.counter = key.counter + 1
-                    key.led_on()
-                    #if key.counter >= 1:
-                        #key.state = 0
-                else: 
-                    # print("turning off LED")
-                    key.led_off()
-                    #key.counter = 0
+            for key in enumerate(self.keys):
+                if key.getLEDState() != key.getState():
+                    if key.getState() == 1:
+                        key.led_on()
+                    else: 
+                        # print("turning off LED")
+                        key.led_off()
+                        #key.counter = 0
             time.sleep(0.01)
 
     def loopKeys(self, active):
-        #self.led_timer = threading.Thread(target = self.loop_LEDs, args=(1,))
-        #self.led_timer.start()
         print("Looping all keys")
-        while True:
-            query = str(f"ADDR:777:ADC:MEAS:CURR 1.0 (@0)\n")
 
-            #read STM values
-            self.leftSTMComm.write(query.encode())
-            self.rightSTMComm.write(query.encode())
-            time.sleep(0.0081)
-            leftReturn = self.leftSTMComm.read(self.leftSTMComm.in_waiting)
-            rightReturn = self.rightSTMComm.read(self.rightSTMComm.in_waiting)
+        while True:
+            leftReturn = ADCInterface.read_adc(self.leftSTMComm)
+            rightReturn = ADCInterface.read_adc(self.rightSTMComm)
 
             #only continue if both ports turned status
             if leftReturn and rightReturn: 
-                #print(leftReturn)
-                #print(rightReturn)
+                self.combined = map(int, (leftReturn + "," + rightReturn).split(","))
 
-                leftReturn = str(leftReturn).replace("b","")
-                leftReturn = leftReturn.replace("'","")
-
-                rightReturn = str(rightReturn).replace("b","")
-                rightReturn = rightReturn.replace("'","")
-
-                #combined = list.split(",")
-                combined = (leftReturn + "," + rightReturn).split(",")
-
-                for i in range(len(combined)):
-                    self.combined[i] = int(combined[i])
-
-                #print(combined)
-                val = 0
-                for key in self.keys:
+                for val, key in enumerate(self.keys):
                     if key.getState() != self.combined[val]:
                         #print(key.getState())
                         #print(int(combined[val]))
@@ -234,23 +202,8 @@ class Piano:
                             key.notePressed()
                         else: 
                             key.noteReleased()
-                    val+=1
-        
             time.sleep(0.05)
-            """
-            print(combined)
 
-            count = 0
-            for key in self.keys:
-                if key.getState() != combined[count]:
-                    #there has been a state change
-                    if combined[count]== 1:
-                        key.notePressed()
-                    else: 
-                        key.noteReleased()
-                count+=1
-            time.sleep(0.005)
-            """
                     
     def countKeys(self):
         return self.noOfKeys
@@ -274,20 +227,16 @@ class Piano:
 
     def parseSongMidi(self, midiSong):
 
-        self.led_timer = threading.Thread(target = self.loop_LEDs, args=(1,))
-        self.led_timer.start() 
+        threading.Thread(target=self.loop_leds, daemon=True).start()
 
-        delay = 3
-        # Strips the newline character
         mid = mido.MidiFile(midiSong)
+
         for msg in mid.play():
-            found = False
-            if(msg.channel == 0 or msg.channel == 1):
-                midioutPort.send(msg)
-                print(msg)
-                
-                for key in self.keys:
-                    if(msg.type == 'note_on' or msg.type == 'note_off'):
+            if msg.channel in [0,1]:
+                midioutPort.send(msg) # play sound regardless
+                #print(msg)
+                if(msg.type in ['note_on','note_off']):
+                    for key in self.keys:
                         if msg.note == key.getNote().getMidiNumber():                        
                             if(msg.type == 'note_on' and msg.velocity > 0):
                                 print("key light")
@@ -300,7 +249,6 @@ class Piano:
 class Note:
     def __init__(self, name, midiNumber): 
         self.name = name
-        self.state = False
         self.midiNumber = midiNumber
 
     def playSound(self):
@@ -327,12 +275,12 @@ class Key:
     def __init__(self, note, pixel_mappa = None): 
         self.note = note
         self.state = 0
-        self.releaseSincePlayed = True
-        self.led_on_time = 1.0
-        self.callback_number = 0
-        self.counter = 0
-        #self.sensor._queue.start()
-        #todo
+            #self.releaseSincePlayed = True
+            #self.led_on_time = 1.0
+            #self.callback_number = 0
+            #self.counter = 0
+            #self.sensor._queue.start()
+
         # LEDs linked to key
         self.map = pixel_mappa
         self.LEDState = 0
@@ -341,9 +289,7 @@ class Key:
         self.dark = Solid(pixel_object=self.map, color = warm_white)
         self.light = Solid(pixel_object=self.map, color =  RED)
 
-        self.dark.animate()
-
-        self.led_timer = threading.Timer(0.1, None)
+        #self.led_timer = threading.Timer(0.1, None)
         
     def __str__(self):
         return self.note.name
@@ -365,8 +311,8 @@ class Key:
 
     def led_off(self):
         #print("turned off LEDs ", self)
-        self.dark.animate()
         self.LEDState = 0
+        self.dark.animate()
         
     # Methods
     """
@@ -385,8 +331,6 @@ class Key:
         self.note.playSound()
         # update LEDs here 
         self.led_on()
-        #self.led_timer = threading.Timer(self.led_on_time, self.led_off_callback, (self.callback_number,))
-        #self.led_timer.start()
         self.state = 1
 
     def noteReleased(self): 
@@ -395,14 +339,11 @@ class Key:
         
         # update LEDs here - Leave LEDs on for as long as key pressed
         self.led_off()
-        #self.led_timer.cancel()
         self.state = 0
             
     def selfPlayActive(self):
         # update LEDs here 
         #self.led_on()
-        #self.led_timer = threading.Timer(self.led_on_time, self.led_off_callback, (self.callback_number,))
-        #self.led_timer.start()
         print("self play")
         self.state = 1
     
