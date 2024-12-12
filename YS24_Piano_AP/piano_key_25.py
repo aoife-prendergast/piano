@@ -91,7 +91,7 @@ class SerialPortManager:
 
 class ADCInterface:
     @staticmethod
-    def send_command(comport, command, delay=0.2):
+    def send_command(comport, command, delay=0.05):
         query = f"ADDR:777:ADC:MEAS:{command} 1.0 (@0)\n".encode()
         comport.write(query)
         time.sleep(delay)
@@ -99,30 +99,39 @@ class ADCInterface:
 
     @staticmethod
     def initialize(comport):
-        return ADCInterface.send_command(comport, "BITS")
+        return ADCInterface.send_command(comport, "BITS",0.5)
 
     @staticmethod
     def calibrate(comport):
-        return ADCInterface.send_command(comport, "TEMP")
+        return ADCInterface.send_command(comport, "TEMP", 0.2)
 
     @staticmethod
     def reset_adc(comport):
-        return ADCInterface.send_command(comport, "LEVEL")
+        return ADCInterface.send_command(comport, "LEVEL",0.2)
 
     @staticmethod
     def read_register(comport):
-        return ADCInterface.send_command(comport, "VOLT?")
+        return ADCInterface.send_command(comport, "VOLT?",0.05)
 
     @staticmethod
     def read_adc(comport):
-        return ADCInterface.send_command(comport, "CURR")
+        return ADCInterface.send_command(comport, "CURR", 0.012)
 
     @staticmethod
-    def full_init(comport):
-        ADCInterface.reset_adc(comport)
-        time.sleep(2)
-        ADCInterface.initialize(comport)
-        ADCInterface.read_register(comport)
+    def adc_full_init(comport):
+        initialised = False
+        while not initialised:
+            ADCInterface.reset_adc(comport)
+            time.sleep(2)
+            ADCInterface.initialize(comport)
+            time.sleep(1)
+            registers = ADCInterface.read_register(comport)
+            if ('38 de' in registers) and ('80 0' in registers) and ('10 40' in registers) and ('28 0' in registers):
+                initialised = True
+                print('ADC Initialised')
+            else:
+                print('Failed to program ADC')
+                print(registers)
         ADCInterface.calibrate(comport)
 
 midioutPort = mido.open_output('xyz:xyz 129:0')
@@ -137,6 +146,8 @@ class Piano:
         self.notes = []
         self.combined = [0] * 24
 
+        self.exit = False
+
         """
         port = mido.open_input('abc', virtual=True)
         print(mido.get_output_names())
@@ -147,8 +158,8 @@ class Piano:
         # Serial setup
         available_ports = SerialPortManager.find_ports()
         print("Available Ports:", available_ports)
-        self.left_comm = SerialPortManager.initialize_port("/dev/ttyACM0")
-        self.right_comm = SerialPortManager.initialize_port("/dev/ttyACM1")
+        self.leftSTMComm = SerialPortManager.initialize_port("/dev/ttyACM0")
+        self.rightSTMComm = SerialPortManager.initialize_port("/dev/ttyACM1")
 
         ADCInterface.adc_full_init(self.leftSTMComm)
         ADCInterface.adc_full_init(self.rightSTMComm)
@@ -167,42 +178,54 @@ class Piano:
         for key in self.keys:
             key.setUnactiveState()
 
-    def loop_LEDs(self, num):
+    def loop_LEDs(self):
         #used for self play - parse midi song
         print("thread started")
         
-        while True:
-            for key in enumerate(self.keys):
+        while not self.exit:
+            for key in self.keys:
                 if key.getLEDState() != key.getState():
                     if key.getState() == 1:
                         key.led_on()
+                        #print('SAM')
                     else: 
                         # print("turning off LED")
                         key.led_off()
+                        #print('AOIFE')
                         #key.counter = 0
-            time.sleep(0.01)
+            time.sleep(0.05)
+
+    def exit_loop(self):
+        input('Press to exit')
+        self.exit = True
 
     def loopKeys(self, active):
         print("Looping all keys")
+        # for key in self.keys: 
+        #     key.makeActive()
+        self.exit = False
+        threading.Thread(target=self.exit_loop, daemon=True).start()
 
-        while True:
+        while not self.exit:
             leftReturn = ADCInterface.read_adc(self.leftSTMComm)
             rightReturn = ADCInterface.read_adc(self.rightSTMComm)
 
             #only continue if both ports turned status
             if leftReturn and rightReturn: 
-                self.combined = map(int, (leftReturn + "," + rightReturn).split(","))
+                self.combined = (leftReturn + "," + rightReturn).split(",")
+                #print(self.combined)
 
                 for val, key in enumerate(self.keys):
-                    if key.getState() != self.combined[val]:
+                    if key.getState() != int(self.combined[val]):
                         #print(key.getState())
                         #print(int(combined[val]))
                         #there has been a state change
-                        if self.combined[val] == 1:
+                        if int(self.combined[val]) == 1:
                             key.notePressed()
                         else: 
                             key.noteReleased()
             time.sleep(0.05)
+        
 
                     
     def countKeys(self):
@@ -215,8 +238,8 @@ class Piano:
 
     def setScale(self, scale_select): 
         
-        if (scale_select >= 2) and (scale_select <= 5):
-            scale_select -= 2
+        if (scale_select >= 1) and (scale_select <= 6):
+            scale_select -= 1
             scale_select = scale_select*12
             for key in self.keys:
                 print(scale_select)
@@ -227,24 +250,55 @@ class Piano:
 
     def parseSongMidi(self, midiSong):
 
-        threading.Thread(target=self.loop_leds, daemon=True).start()
+        threading.Thread(target=self.loop_LEDs, daemon=True).start()
+
+        self.exit = False
+        threading.Thread(target=self.exit_loop, daemon=True).start()
 
         mid = mido.MidiFile(midiSong)
+        
+        # find scale
+        max = 0
+        for msg in mid:
+            if(msg.type in ['note_on','note_off']):
+                
+                if msg.note > max :
+                    max = msg.note
+                    
+        
+        print(max)
+        scale = int(max/12)+1
+
+        for key in self.keys:
+            print("key number",key.getNote().getMidiNumber())
+
+        print(scale)
+        self.setScale(scale)
+
+        for key in self.keys:
+            print("key number",key.getNote().getMidiNumber())
+
 
         for msg in mid.play():
-            if msg.channel in [0,1]:
-                midioutPort.send(msg) # play sound regardless
-                #print(msg)
-                if(msg.type in ['note_on','note_off']):
-                    for key in self.keys:
-                        if msg.note == key.getNote().getMidiNumber():                        
-                            if(msg.type == 'note_on' and msg.velocity > 0):
-                                print("key light")
-                                key.selfPlayActive()
-                            
-                            elif(msg.type == 'note_off' or msg.velocity == 0):
-                                print("key unlight")
-                                key.selfPlayStop()
+            midioutPort.send(msg) # play sound regardless
+            #print(msg)
+            if(msg.type in ['note_on','note_off']):
+                for key in self.keys:
+                    # print("key number",key.getNote().getMidiNumber())
+                    # print("midifile num",msg.note) 
+                    if msg.note == key.getNote().getMidiNumber():   
+                        # print("key number",key.getNote().getMidiNumber())
+                        # print("midifile num",msg.note)                     
+                        if(msg.type == 'note_on' and msg.velocity > 0):
+                            # print("key light")3
+                            key.selfPlayActive()
+                        
+                        elif(msg.type == 'note_off' or msg.velocity == 0):
+                            # print("key unlight")
+                            key.selfPlayStop()
+
+            if self.exit:
+                break   
 
 class Note:
     def __init__(self, name, midiNumber): 
@@ -272,7 +326,8 @@ class Note:
         return self.midiNumber
 
 class Key: 
-    def __init__(self, note, pixel_mappa = None): 
+    def __init__(self, note, pixel_mappa = None):  # Add back sensor as first input
+        # self.sensor = sensor
         self.note = note
         self.state = 0
             #self.releaseSincePlayed = True
@@ -306,7 +361,7 @@ class Key:
     def led_off_callback(self, arg):
         # wait for the latest callback before turning off
         if(arg == self.callback_number):
-            #print("turned off LEDs ", self)
+            #print("turned off LEDs ", self)print(msg.note)
             self.dark.animate()
 
     def led_off(self):
@@ -315,7 +370,7 @@ class Key:
         self.dark.animate()
         
     # Methods
-    """
+    
     # configuring interrupts
     def makeActive(self):
         self.sensor.when_released = self.notePressed #this is an interupt
@@ -325,7 +380,7 @@ class Key:
     def makeUnactive(self):
         self.sensor.when_released = None
         self.sensor.when_pressed = None
-    """
+    
     def notePressed(self): 
         # print("PLAY: ", self.note.getName())
         self.note.playSound()
@@ -344,12 +399,13 @@ class Key:
     def selfPlayActive(self):
         # update LEDs here 
         #self.led_on()
-        print("self play")
+        # print("self play")
         self.state = 1
+        #print(self.note.getName())
     
     def selfPlayStop(self):
         #self.led_off()
-        print("self stop")
+        # print("self stop")
         self.state = 0
         
     # Getter and Setters

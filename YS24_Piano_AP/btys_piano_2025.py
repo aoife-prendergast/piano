@@ -65,6 +65,18 @@ def main(args):
     # print(pygame.mixer.get_init())
     
     #the sounds 
+    Cn1 = Note("Cn1",24)
+    Cs1 = Note("C#1",25)
+    Dn1 = Note("Dn1",26)
+    Ds1 = Note("D#1",27)
+    En1 = Note("En1",28)
+    Fn1 = Note("Fn1",29)
+    Fs1 = Note("F#1",30)
+    Gn1 = Note("Gn1",31)
+    Gs1 = Note("G#1",32)
+    An1 = Note("An1",33)
+    As1 = Note("A#1",34)
+    Bn1 = Note("Bn1",35)
     Cn2 = Note("Cn2",36)
     Cs2 = Note("C#2",37)
     Dn2 = Note("Dn2",38)
@@ -101,7 +113,7 @@ def main(args):
     An4 = Note("An4",69)
     As4 = Note("A#4",70)
     Bn4 = Note("Bn4",71)
-    Cn5 = Note("Cn5",71)
+    Cn5 = Note("Cn5",72)
     Cs5 = Note("C#5",73)
     Dn5 = Note("Dn5",74)
     Ds5 = Note("D#5",75)
@@ -117,6 +129,26 @@ def main(args):
     Cs6 = Note("C#6",85)
     Dn6 = Note("Dn6",86)
     Ds6 = Note("D#6",87)
+    En6 = Note("En6",88)
+    Fn6 = Note("Fn6",89)
+    Fs6 = Note("F#6",90)
+    Gn6 = Note("Gn6",91)
+    Gs6 = Note("G#6",92)
+    An6 = Note("An6",93)
+    As6 = Note("A#6",94)
+    Bn6 = Note("Bn6",95)
+    Cn7 = Note("Cn7",96)
+    Cs7 = Note("C#7",97)
+    Dn7 = Note("Dn7",98)
+    Ds7 = Note("D#7",99)
+    En7 = Note("En7",100)
+    Fn7 = Note("Fn7",101)
+    Fs7 = Note("F#7",102)
+    Gn7 = Note("Gn7",103)
+    Gs7 = Note("G#7",104)
+    An7 = Note("An7",105)
+    As7 = Note("A#7",106)
+    Bn7 = Note("Bn7",107)
 
     pixel_pin = board.D18
     pixel_num = 2245
@@ -148,6 +180,7 @@ def main(args):
     key24map = helper.PixelMap(pixels, PianoPixelMap.key_24_pixel_map, individual_pixels=True)
 
 
+    # key_1 =  Key(Button(4,bounce_time=0.05),Cn3, key1map)
     key_1 =  Key(Cn3, key1map)
     key_3 =  Key(Dn3, key3map)
     key_5 =  Key(En3, key5map)
@@ -191,7 +224,7 @@ def main(args):
     key_21.setUnactiveColour(sharp_default)
     key_23.setUnactiveColour(sharp_default)
 
-    # active colors 
+    ## active colors 
     key_1.setActiveColour(RED)
     key_2.setActiveColour(AMBER)
     key_3.setActiveColour(ORANGE)
@@ -263,15 +296,17 @@ def main(args):
     piano.addKey(key_24)
     
     
-
+    piano.addNotes([Cn1,Cs1,Dn1,Ds1,En1,Fn1,Fs1,Gn1,Gs1,An1,As1,Bn1])
     piano.addNotes([Cn2,Cs2,Dn2,Ds2,En2,Fn2,Fs2,Gn2,Gs2,An2,As2,Bn2])
     piano.addNotes([Cn3,Cs3,Dn3,Ds3,En3,Fn3,Fs3,Gn3,Gs3,An3,As3,Bn3])
     piano.addNotes([Cn4,Cs4,Dn4,Ds4,En4,Fn4,Fs4,Gn4,Gs4,An4,As4,Bn4])
     piano.addNotes([Cn5,Cs5,Dn5,Ds5,En5,Fn5,Fs5,Gn5,Gs5,An5,As5,Bn5])
-    piano.addNotes([Cn6,Cs6,Dn6,Ds6])
+    piano.addNotes([Cn6,Cs6,Dn6,Ds6,En6,Fn6,Fs6,Gn6,Gs6,An6,As6,Bn6])
+    piano.addNotes([Cn7,Cs7,Dn7,Ds7,En7,Fn7,Fs7,Gn7,Gs7,An7,As7,Bn7])
 
     piano.resetLights()
     
+
     while(1):
         print("What game would you like to play:")
         print("\nOptions are:")
@@ -298,9 +333,8 @@ def main(args):
                 time_old = time_taken
             """
             piano.loopKeys(True)
-            print("User input to stop keys")
-            wait = input()
-            piano.loopKeys(False)
+            print("Back in main loop")
+            
 
         elif game == 2: 
             print("\n ")
@@ -326,6 +360,12 @@ def main(args):
 
             print("\What song would you like to play:")
 
+            count = 0       
+            for path in pathlist:
+                print(f'Number: {count}, Song: {str(path)[11:]}')
+                count = count + 1
+            
+            pathlist = Path("midi_songs/").rglob('*.mid')
             song = int(input())
             count = 0
             for path in pathlist:
@@ -337,6 +377,12 @@ def main(args):
             midiSong = str(val)
             print(midiSong)
             print("Time to play" + midiSong)
+            piano.parseSongMidi(midiSong)
+
+        elif game == 6: 
+            print("\n ")
+            midiSong = 'midi_songs/MIDI File - Noah Kahan - Stick Season (Easy).mid'
+            print("Time to play Stick Season:")
             piano.parseSongMidi(midiSong)
 
 
