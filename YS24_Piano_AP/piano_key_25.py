@@ -357,14 +357,13 @@ class Piano:
             
             # play keys and wait
             for val, key in enumerate(self.keys):
-                if key.getState() != combined_array[val]:
-                    if combined_array[val] == 1:
-                        key.notePressed()
-                    else: 
-                        key.noteReleased()
+                if combined_array[val] == 1:
+                    key.notePressed()
+                else: 
+                    key.noteReleased()
             time.sleep(OnTime_Delay * constant_delay)
 
-            # StOP keys and wait
+            # STOP keys and wait
             for val, key in enumerate(self.keys):
                 key.noteReleased()  	
             time.sleep(OffTime_Delay * constant_delay)
