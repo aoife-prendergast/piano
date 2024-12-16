@@ -389,7 +389,8 @@ def main(args):
 
         elif game == 12: 
             print("\n ")
-            print(" ************ Time to play Stick Season: ********* ")
+            Solid(pixel_object=full_piano_map, color = PINK).animate()  
+            print(" ************ I AM CALIBRATING... ********* ")
             piano.calibrate_ADCs()
    
         elif game == 0:
