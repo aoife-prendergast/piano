@@ -177,9 +177,9 @@ class Piano:
 
         for serial_num in comport_lists: 
             initialised_port = SerialPortManager.initialize_port(serial_num)
-            if ADCInterface.SN_read(initialised_port) == "LEFT": 
+            if ADCInterface.SN_read(initialised_port).contains("LEFT"): 
                 self.leftSTMComm = initialised_port
-            elif ADCInterface.SN_read(initialised_port) == "RIGHT": 
+            elif ADCInterface.SN_read(initialised_port).contains("RIGHT"): 
                 self.rightSTMComm = initialised_port
 
         ADCInterface.adc_full_init(self.leftSTMComm)
