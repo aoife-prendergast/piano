@@ -306,8 +306,10 @@ def main(args):
 
     piano.resetLights()
     
+    rainbow = Rainbow(pixels, speed=0.0075, period=5, step=0.1)
 
     while(1):
+
         print("What game would you like to play:")
         print("\nOptions are:")
         print("\t1 -> FREE PLAY MODE")
@@ -395,6 +397,8 @@ def main(args):
             break
         else: 
             print("\nInvalid Input!!! Try again :)")
+
+        rainbow.animate()    
             
     return 0
 

@@ -69,6 +69,8 @@ from adafruit_led_animation.animation.solid import Solid
 from pydub import AudioSegment
 from pixel_mapping import PianoPixelMap
 
+warm_white = (253, 244, 220)
+midioutPort = mido.open_output('xyz:xyz 129:0')
 
 class SerialPortManager:
     @staticmethod
@@ -148,8 +150,6 @@ class ADCInterface:
 
         ADCInterface.calibrate(comport)
 
-midioutPort = mido.open_output('xyz:xyz 129:0')
-
 class Piano: 
     def __init__(self): 
         self.noOfKeys = 0
@@ -162,6 +162,9 @@ class Piano:
 
         self.left_player = 0
         self.right_player = 0
+
+        self.left_LEDs = left_half_pixel_map
+        self.right_LEDs = right_half_pixel_map
 
         self.exit = False
 
@@ -207,6 +210,7 @@ class Piano:
         ADCInterface.calibrate(self.rightSTMComm)
 
     def loop_LEDs(self):
+        
         #used for self play - parse midi song
         print("thread started")
         
@@ -256,6 +260,7 @@ class Piano:
         self.exit = True
 
     def loopKeys(self, active):
+        self.resetLights()
         print("Looping all keys")
         # for key in self.keys: 
         #     key.makeActive()
@@ -283,6 +288,7 @@ class Piano:
             time.sleep(0.05)
     
     def chopsticks(self): 
+        self.resetLights()
         print("Playing chopsticks game...")
 
         # Load the MIDI file for Chopsticks
@@ -335,13 +341,29 @@ class Piano:
         if left_player > right_player:
             print("Player 1 wins!")
             #light up LEDs green for left
+            left_color = GREEN
+            right_color = RED
+            
         elif right_player > left_player:
             print("Player 2 wins!")
             #light up LEDs green for right
+            left_color = RED
+            right_color = GREEN
         else:
             print("It's a tie!")
             #light up LEDs Rainbow
+            left_color = GREEN
+            right_color = GREEN
 
+        # communicate the results by lighting up the LED for the winner...
+        for i in range(10):
+            Solid(pixel_object=self.left_LEDs, color = left_color).animate()
+            Solid(pixel_object=self.right_LEDs, color = right_color).animate()
+            delay(0.33)
+            
+            Solid(pixel_object=self.left_LEDs, color = warm_white).animate()
+            Solid(pixel_object=self.right_LEDs, color = warm_white).animate()
+            delay(0.33)
                     
     def countKeys(self):
         return self.noOfKeys
@@ -364,6 +386,7 @@ class Piano:
             print("Invalid Scale Input")
 
     def parseSongMidi(self, midiSong):
+        self.resetLights()
 
         threading.Thread(target=self.loop_LEDs, daemon=True).start()
 
@@ -438,7 +461,6 @@ class Key:
         self.map = pixel_mappa
         self.LEDState = 0
 
-        warm_white = (253, 244, 220)
         self.dark = Solid(pixel_object=self.map, color = warm_white)
         self.light = Solid(pixel_object=self.map, color =  RED)
 
