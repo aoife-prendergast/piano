@@ -102,6 +102,13 @@ class ADCInterface:
         return ADCInterface.send_command(comport, "BITS",0.5)
 
     @staticmethod
+    def SN_read(comport):
+        query = f"ADDR:777:*SN? \n".encode()
+        comport.write(query)
+        time.sleep(0.1)
+        return comport.read(comport.in_waiting).decode().strip()
+
+    @staticmethod
     def calibrate(comport):
         return ADCInterface.send_command(comport, "TEMP", 0.2)
 
@@ -165,8 +172,15 @@ class Piano:
         # Serial setup
         available_ports = SerialPortManager.find_ports()
         print("Available Ports:", available_ports)
-        self.leftSTMComm = SerialPortManager.initialize_port("/dev/ttyACM0")
-        self.rightSTMComm = SerialPortManager.initialize_port("/dev/ttyACM1")
+
+        comport_lists = ["/dev/ttyACM0","/dev/ttyACM1"]
+
+        for serial_num in comport_lists: 
+            initialised_port = SerialPortManager.initialize_port(serial_num)
+            if ADCInterface.SN_read(initialised_port) == "LEFT": 
+                self.leftSTMComm = initialised_port
+            elif ADCInterface.SN_read(initialised_port) == "RIGHT": 
+                self.rightSTMComm = initialised_port
 
         ADCInterface.adc_full_init(self.leftSTMComm)
         ADCInterface.adc_full_init(self.rightSTMComm)
