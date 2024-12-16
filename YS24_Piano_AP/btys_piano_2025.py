@@ -313,9 +313,10 @@ def main(args):
         print("What game would you like to play:")
         print("\nOptions are:")
         print("\t1 -> FREE PLAY MODE")
-        print("\t2 -> PLAY Taylor")
-        print("\t3 -> PLAY Deck the Halls")
-        print("\t4 -> SET scale")
+        print("\t2 -> SET scale")
+        print("\t3 -> Self Play Song")
+        print("\t4 -> Chopsticks Game")
+        print("\t55 -> Recalibrate ADCs")
         print("\t0 -> END THE PROGRAM")
 
         try:
@@ -336,58 +337,38 @@ def main(args):
             """
             piano.loopKeys(True)
             print("Back in main loop")
+    
             
-
         elif game == 2: 
-            print("\n ")
-            print("Time to play taylor:")
-            midiSong = 'midi_songs/Taylor Swift - Blank Space - Pianoitall.mid'
-            piano.parseSongMidi(midiSong)
-
-        elif game == 3: 
-            print("\n ")
-            midiSong = 'midi_songs/Deckthehalls1H.mid'
-            print("Time to play Deck the halls:")
-            piano.parseSongMidi(midiSong)
-            
-        elif game == 4: 
             print("\n Changing Scale")
             print("User input to set scale:")
             scale_select = int(input())
             piano.setScale(scale_select)
 
-        elif game == 5: 
+        elif game == 3: 
             print("\n ")
-            pathlist = Path("midi_songs/").rglob('*.mid')
+            songs = list(Path("midi_songs/").rglob('*.mid'))
 
-            print("\What song would you like to play:")
+            print("\nWhat song would you like to play:")
 
-            count = 0       
-            for path in pathlist:
-                print(f'Number: {count}, Song: {str(path)[11:]}')
-                count = count + 1
+            # Display the songs with indices
+            for i, song in enumerate(songs):
+                print(f"Number: {i}, Song: {song.name}")
             
-            pathlist = Path("midi_songs/").rglob('*.mid')
-            song = int(input())
-            count = 0
-            for path in pathlist:
-                if count == song: 
-                    val = path
-                    break
-                count = count + 1
+            # User selects a song by index
+            song_index = int(input("Enter the song number: "))
+            selected_song = songs[song_index]
 
-            midiSong = str(val)
-            print(midiSong)
+            midiSong = str(selected_song)
             print("Time to play" + midiSong)
             piano.parseSongMidi(midiSong)
 
-        elif game == 6: 
+        elif game == 4: 
             print("\n ")
-            midiSong = 'midi_songs/MIDI File - Noah Kahan - Stick Season (Easy).mid'
-            print("Time to play Stick Season:")
-            piano.parseSongMidi(midiSong)
+            print(" ************ CHOPSTICKS... ********* ")
+            piano.chopsticks()
 
-        elif game == 12: 
+        elif game == 55: 
             print("\n ")
             Solid(pixel_object=full_piano_map, color = PINK).animate()  
             print(" ************ I AM CALIBRATING... ********* ")

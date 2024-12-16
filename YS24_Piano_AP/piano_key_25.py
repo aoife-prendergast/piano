@@ -259,13 +259,20 @@ class Piano:
         input('Press to exit')
         self.exit = True
 
+    def exit_loop_freeplay(self):
+        val = input('Press to exit or change scale')
+        if (int(val) >= 1) and (int(val) <= 6): 
+            self.setScale()
+        else:
+            self.exit = True
+
     def loopKeys(self, active):
         self.resetLights()
         print("Looping all keys")
         # for key in self.keys: 
         #     key.makeActive()
         self.exit = False
-        threading.Thread(target=self.exit_loop, daemon=True).start()
+        threading.Thread(target=self.exit_loop_freeplay, daemon=True).start()
 
         while not self.exit:
             leftReturn = ADCInterface.read_adc(self.leftSTMComm)
