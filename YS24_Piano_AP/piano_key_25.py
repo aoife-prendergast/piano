@@ -105,9 +105,9 @@ class ADCInterface:
 
     @staticmethod
     def SN_read(comport):
-        query = f"ADDR:777:*SN? \n".encode()
+        query = f"ADDR:777:SCPI:*SN? \n".encode()
         comport.write(query)
-        time.sleep(0.1)
+        time.sleep(0.05)
         return comport.read(comport.in_waiting).decode().strip()
 
     @staticmethod
