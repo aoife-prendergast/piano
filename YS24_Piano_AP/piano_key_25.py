@@ -219,12 +219,8 @@ class Piano:
                 if key.getLEDState() != key.getState():
                     if key.getState() == 1:
                         key.led_on()
-                        #print('SAM')
                     else: 
-                        # print("turning off LED")
                         key.led_off()
-                        #print('AOIFE')
-                        #key.counter = 0
             time.sleep(0.05)
 
     def loop_ADCs(self):
@@ -253,7 +249,7 @@ class Piano:
                         # Left player pressed an active key
                         right_player += 1
 
-            time.sleep(0.05) #run every 50 ms -> 100 times a second...
+            time.sleep(0.05) #run every 50 ms -> 20 times a second...
 
     def exit_loop(self):
         input('Press to exit')
@@ -293,23 +289,47 @@ class Piano:
                         else: 
                             key.noteReleased()
             time.sleep(0.05)
+
+    def read_in_groups_of_two(file_path):
+        with open(file_path, 'r') as file:
+            while True:
+                # Read two lines from the file
+                line1 = file.readline()
+                line2 = file.readline()
+                
+                # If both lines are empty, we're at the end of the file
+                if not line1 and not line2:
+                    break
+                
+                # Yield the two lines as a tuple (or handle them)
+                yield (line1.strip(), line2.strip())
+
+    def and_operation(array1, array2):
+        # Perform element-wise AND operation
+        return [a & b for a, b in zip(array1, array2)]
     
     def chopsticks(self): 
         self.resetLights()
-        print("Playing chopsticks game...")
+        print("Playing chopsticks game...")#
+        
+        OnTime_Delay = 4
+        OffTime_Delay = 1
+        constant_delay = 0.25
 
-        # Load the MIDI file for Chopsticks
-        midi_song = "chopsticks.mid"  # Replace with the correct path to your MIDI file
-        mid = mido.MidiFile(midi_song)
+        # Load the file for Chopsticks
+        midi_song = "TimedGame/chopsticks.txt"  # Replace with the correct path to your MIDI file
+        
+        with open(midi_song, 'r') as file:
+            line1 = file.readline()
+            # discard line 1 
+
+            line2 = file.readline()
+            # obtain the on/off delay speed for line 2
+            # discard line 2
 
         # Initialize player scores
         self.left_player = 0
         self.right_player = 0
-
-        # Find the appropriate scale for the song
-        max_note = max(msg.note for msg in mid if msg.type in ['note_on', 'note_off'])
-        scale = int(max_note / 12) + 1
-        self.setScale(scale)
 
         # Start LED thread for visual effects
         threading.Thread(target=self.loop_LEDs, daemon=True).start()
@@ -323,35 +343,47 @@ class Piano:
         # Play the MIDI file
         print("Game starting. Follow the lights!")
 
-        # just play the song
-        for msg in mid.play():
-            # Send the MIDI message to play the sound
-            midioutPort.send(msg)
+        # JUST play the song on whatever scale is currently enabled
+        for line1, line2 in read_in_groups_of_two(file_path):
+            line1 = file.readline()
+            digit_array1 = [int(char) for char in line1 if char.isdigit()]
 
-            # Handle note events
-            if msg.type in ['note_on', 'note_off']:
-                for i, key in enumerate(self.keys):
-                    if msg.note == key.getNote().getMidiNumber():
-                        if msg.type == 'note_on' and msg.velocity > 0:
-                            key.selfPlayActive()  # Light up the key
-                        elif msg.type == 'note_off' or msg.velocity == 0:
-                            key.selfPlayStop()  # Turn off the light
+            line2 = file.readline()
+            digit_array2 = [int(char) for char in line2 if char.isdigit()]
+
+            combined_array = and_operation(array1, array2)
+
+            print(combined_array)
+            
+            # play keys and wait
+            for val, key in enumerate(self.keys):
+                if key.getState() != combined_array[val]:
+                    if combined_array[val] == 1:
+                        key.notePressed()
+                    else: 
+                        key.noteReleased()
+            time.sleep(OnTime_Delay * constant_delay)
+
+            # StOP keys and wait
+            for val, key in enumerate(self.keys):
+                key.noteReleased()  	
+            time.sleep(OffTime_Delay * constant_delay)
 
             if self.exit:
                 break
 
         # Display the results
         print("Game Over!")
-        print(f"Player 1 Score: {left_player}")
-        print(f"Player 2 Score: {right_player}")
+        print(f"Player 1 Score: {self.left_player}")
+        print(f"Player 2 Score: {self.right_player}")
 
-        if left_player > right_player:
+        if self.left_player > self.right_player:
             print("Player 1 wins!")
             #light up LEDs green for left
             left_color = GREEN
             right_color = RED
             
-        elif right_player > left_player:
+        elif self.right_player > self.left_player:
             print("Player 2 wins!")
             #light up LEDs green for right
             left_color = RED
@@ -366,11 +398,11 @@ class Piano:
         for i in range(10):
             Solid(pixel_object=self.left_LEDs, color = left_color).animate()
             Solid(pixel_object=self.right_LEDs, color = right_color).animate()
-            delay(0.33)
+            time.sleep(0.33)
             
             Solid(pixel_object=self.left_LEDs, color = warm_white).animate()
             Solid(pixel_object=self.right_LEDs, color = warm_white).animate()
-            delay(0.33)
+            time.sleep(0.33)
                     
     def countKeys(self):
         return self.noOfKeys
