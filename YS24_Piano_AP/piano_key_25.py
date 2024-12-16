@@ -160,6 +160,9 @@ class Piano:
         self.notes = []
         self.combined = [0] * 24
 
+        self.left_player = 0
+        self.right_player = 0
+
         self.exit = False
 
         """
@@ -220,6 +223,34 @@ class Piano:
                         #key.counter = 0
             time.sleep(0.05)
 
+    def loop_ADCs(self):
+        #used for self play - parse midi song
+        print("ADC thread started")
+
+        left_keys = piano.keys[:12]
+        right_keys = piano.keys[11:]
+        
+        while not self.exit:
+            # Read ADC data for key presses
+            left_return = ADCInterface.read_adc(self.leftSTMComm)
+            right_return = ADCInterface.read_adc(self.rightSTMComm)
+
+            if (len(left_return) >= 11) and (len(right_return) >= 11): # valid readbacks from both ADCs
+                left_return = left_return.split(",")
+                right_return = right_return.split(",")
+
+                for index, active_state in enumerate(left_return): 
+                    if int(active_state) == 1 and self.left_keys[index].getState() == 1:
+                        # Left player pressed an active key
+                        left_player += 1
+                
+                for index, active_state in enumerate(right_return): 
+                    if int(active_state) == 1 and self.right_keys[index].getState() == 1:
+                        # Left player pressed an active key
+                        right_player += 1
+
+            time.sleep(0.05) #run every 50 ms -> 100 times a second...
+
     def exit_loop(self):
         input('Press to exit')
         self.exit = True
@@ -250,7 +281,66 @@ class Piano:
                         else: 
                             key.noteReleased()
             time.sleep(0.05)
-        
+    
+    def chopsticks(self): 
+        print("Playing chopsticks game...")
+
+        # Load the MIDI file for Chopsticks
+        midi_song = "chopsticks.mid"  # Replace with the correct path to your MIDI file
+        mid = mido.MidiFile(midi_song)
+
+        # Initialize player scores
+        self.left_player = 0
+        self.right_player = 0
+
+        # Find the appropriate scale for the song
+        max_note = max(msg.note for msg in mid if msg.type in ['note_on', 'note_off'])
+        scale = int(max_note / 12) + 1
+        self.setScale(scale)
+
+        # Start LED thread for visual effects
+        threading.Thread(target=self.loop_LEDs, daemon=True).start()
+
+        # Start ADC thread for tracking the pressed keys vs the active song keys
+        threading.Thread(target=self.loop_ADC, daemon=True).start()
+
+        self.exit = False
+        threading.Thread(target=self.exit_loop, daemon=True).start()
+
+        # Play the MIDI file
+        print("Game starting. Follow the lights!")
+
+        # just play the song
+        for msg in mid.play():
+            # Send the MIDI message to play the sound
+            midioutPort.send(msg)
+
+            # Handle note events
+            if msg.type in ['note_on', 'note_off']:
+                for i, key in enumerate(self.keys):
+                    if msg.note == key.getNote().getMidiNumber():
+                        if msg.type == 'note_on' and msg.velocity > 0:
+                            key.selfPlayActive()  # Light up the key
+                        elif msg.type == 'note_off' or msg.velocity == 0:
+                            key.selfPlayStop()  # Turn off the light
+
+            if self.exit:
+                break
+
+        # Display the results
+        print("Game Over!")
+        print(f"Player 1 Score: {left_player}")
+        print(f"Player 2 Score: {right_player}")
+
+        if left_player > right_player:
+            print("Player 1 wins!")
+            #light up LEDs green for left
+        elif right_player > left_player:
+            print("Player 2 wins!")
+            #light up LEDs green for right
+        else:
+            print("It's a tie!")
+            #light up LEDs Rainbow
 
                     
     def countKeys(self):
@@ -282,27 +372,10 @@ class Piano:
 
         mid = mido.MidiFile(midiSong)
         
-        # find scale
-        max = 0
-        for msg in mid:
-            if(msg.type in ['note_on','note_off']):
-                
-                if msg.note > max :
-                    max = msg.note
-                    
-        
-        print(max)
-        scale = int(max/12)+1
-
-        for key in self.keys:
-            print("key number",key.getNote().getMidiNumber())
-
-        print(scale)
-        self.setScale(scale)
-
-        for key in self.keys:
-            print("key number",key.getNote().getMidiNumber())
-
+        # Determine the scale based on the highest note in the MIDI file
+        max_note = max(msg.note for msg in mid if msg.type in ['note_on', 'note_off'])
+        scale = (max_note // 12) + 1
+        print(f"Detected scale: {scale}")
 
         for msg in mid.play():
             midioutPort.send(msg) # play sound regardless
