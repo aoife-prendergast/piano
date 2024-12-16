@@ -120,6 +120,12 @@ class ADCInterface:
     @staticmethod
     def adc_full_init(comport):
         initialised = False
+
+        registers = ADCInterface.read_register(comport)
+        if ('38 de' in registers) and ('80 0' in registers) and ('10 40' in registers) and ('28 0' in registers):
+            initialised = True
+            print('ADC Already Initialised')
+
         while not initialised:
             ADCInterface.reset_adc(comport)
             time.sleep(2)
@@ -132,6 +138,7 @@ class ADCInterface:
             else:
                 print('Failed to program ADC')
                 print(registers)
+
         ADCInterface.calibrate(comport)
 
 midioutPort = mido.open_output('xyz:xyz 129:0')
@@ -177,6 +184,10 @@ class Piano:
         print("Setting all key unactive colors")
         for key in self.keys:
             key.setUnactiveState()
+
+    def calibrate_ADCs(self): 
+        ADCInterface.calibrate(self.leftSTMComm)
+        ADCInterface.calibrate(self.rightSTMComm)
 
     def loop_LEDs(self):
         #used for self play - parse midi song

@@ -385,8 +385,11 @@ def main(args):
             print("Time to play Stick Season:")
             piano.parseSongMidi(midiSong)
 
-
-            
+        elif game == 12: 
+            print("\n ")
+            print(" ************ Time to play Stick Season: ********* ")
+            piano.calibrate_ADCs()
+   
         elif game == 0:
             print("\nExiting the program.")
             break
