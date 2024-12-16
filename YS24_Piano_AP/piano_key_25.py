@@ -221,8 +221,8 @@ class Piano:
             leftReturn = ADCInterface.read_adc(self.leftSTMComm)
             rightReturn = ADCInterface.read_adc(self.rightSTMComm)
 
-            #only continue if both ports turned status
-            if leftReturn and rightReturn: 
+            #only continue if both ports returned something of a certain length (at least twelve 0/1s seperated by commas)
+            if (len(leftReturn) >= 23) and (len(rightReturn) >= 23): 
                 self.combined = (leftReturn + "," + rightReturn).split(",")
                 #print(self.combined)
 
