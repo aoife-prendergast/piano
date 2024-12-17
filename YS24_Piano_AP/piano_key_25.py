@@ -191,23 +191,17 @@ class Piano:
         self.leftSTMComm = 0
         self.rightSTMComm = 0
 
-        # print('Test1')
-        # for serial_num in comport_lists: 
-        #     initialised_port = SerialPortManager.initialize_port(serial_num)
-        #     print('Test2')
-        #     while self.leftSTMComm == 0 or self.rightSTMComm == 0:
-        #         print('Test3')
-        #         print(ADCInterface.SN_read(initialised_port)) 
-        #         if ADCInterface.SN_read(initialised_port) in "LEFT" and self.leftSTMComm == 0: 
-        #             print('Test4')
-        #             self.leftSTMComm = initialised_port
-        #         elif ADCInterface.SN_read(initialised_port) in "RIGHT":
-        #             self.rightSTMComm = initialised_port
-        #             print('Test5')
-        #         print('Test6')
-
-        self.leftSTMComm = SerialPortManager.initialize_port(comport_lists[0])
-        self.rightSTMComm = SerialPortManager.initialize_port(comport_lists[1])
+        while self.leftSTMComm == 0 or self.rightSTMComm == 0:
+            for serial_num in comport_lists: 
+                initialised_port = SerialPortManager.initialize_port(serial_num)
+                print(ADCInterface.SN_read(initialised_port)) 
+                if "LEFT" in ADCInterface.SN_read(initialised_port) and self.leftSTMComm == 0: 
+                    self.leftSTMComm = initialised_port
+                elif "RIGHT" in ADCInterface.SN_read(initialised_port):
+                    self.rightSTMComm = initialised_port
+  
+        # self.leftSTMComm = SerialPortManager.initialize_port(comport_lists[0])
+        # self.rightSTMComm = SerialPortManager.initialize_port(comport_lists[1])
         ADCInterface.adc_full_init(self.leftSTMComm)
         ADCInterface.adc_full_init(self.rightSTMComm)
 
@@ -218,8 +212,6 @@ class Piano:
 
 
         
-    
-
     def addKey(self, key):
         self.keys.append(key)
         self.noOfKeys += 1
@@ -329,7 +321,7 @@ class Piano:
                 if  10 < len(rightReturn):
                     break
 
-            print(leftReturn + ',' + rightReturn)
+            # print(leftReturn + ',' + rightReturn) # For debugging
             #only continue if both ports returned something of a certain length (at least twelve 0/1s seperated by commas)
             if (len(leftReturn) >= 23) and (len(rightReturn) >= 23): 
                 self.combined = (leftReturn + "," + rightReturn).split(",")
