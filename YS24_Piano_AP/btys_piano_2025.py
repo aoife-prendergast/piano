@@ -48,6 +48,7 @@ from adafruit_led_animation.animation.rainbowchase import RainbowChase
 from adafruit_led_animation.animation.chase import Chase
 from adafruit_led_animation.animation.rainbow import Rainbow
 from adafruit_led_animation.sequence import AnimationSequence
+from adafruit_led_animation.animation.solid import Solid
 
 import digitalio
 from pixel_mapping import PianoPixelMap
@@ -178,6 +179,7 @@ def main(args):
     key22map = helper.PixelMap(pixels, PianoPixelMap.key_22_pixel_map, individual_pixels=True)
     key23map = helper.PixelMap(pixels, PianoPixelMap.key_23_pixel_map, individual_pixels=True)
     key24map = helper.PixelMap(pixels, PianoPixelMap.key_24_pixel_map, individual_pixels=True)
+    fullpainomappa = helper.PixelMap(pixels, PianoPixelMap.full_piano_map, individual_pixels=True)
 
 
     # key_1 =  Key(Button(4,bounce_time=0.05),Cn3, key1map)
@@ -251,7 +253,7 @@ def main(args):
     key_23.setActiveColour(PINK)
     key_24.setActiveColour(MAGENTA)
     
-    piano = Piano()
+    piano = Piano(pixels)
 
     """
     piano.addKey(key_Cn2)
@@ -294,7 +296,22 @@ def main(args):
     piano.addKey(key_22)
     piano.addKey(key_23)
     piano.addKey(key_24)
-    
+
+    piano.addNotSharps(key_1)
+    piano.addNotSharps(key_3)
+    piano.addNotSharps(key_5)
+    piano.addNotSharps(key_6)
+    piano.addNotSharps(key_8)
+    piano.addNotSharps(key_10)
+    piano.addNotSharps(key_12)
+    piano.addNotSharps(key_13)
+    piano.addNotSharps(key_15)
+    piano.addNotSharps(key_17)
+    piano.addNotSharps(key_18)
+    piano.addNotSharps(key_20)
+    piano.addNotSharps(key_22)
+    piano.addNotSharps(key_24)
+
     
     piano.addNotes([Cn1,Cs1,Dn1,Ds1,En1,Fn1,Fs1,Gn1,Gs1,An1,As1,Bn1])
     piano.addNotes([Cn2,Cs2,Dn2,Ds2,En2,Fn2,Fs2,Gn2,Gs2,An2,As2,Bn2])
@@ -370,9 +387,10 @@ def main(args):
 
         elif game == 55: 
             print("\n ")
-            Solid(pixel_object=full_piano_map, color = PINK).animate()  
+            Solid(pixel_object=fullpainomappa, color = PINK).animate()  
             print(" ************ I AM CALIBRATING... ********* ")
             piano.calibrate_ADCs()
+            time.sleep(3)
    
         elif game == 0:
             print("\nExiting the program.")

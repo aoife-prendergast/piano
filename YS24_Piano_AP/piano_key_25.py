@@ -120,20 +120,25 @@ class ADCInterface:
 
     @staticmethod
     def read_register(comport):
-        return ADCInterface.send_command(comport, "VOLT?",0.05)
+        return ADCInterface.send_command(comport, "VOLT?",0.2)
 
     @staticmethod
     def read_adc(comport):
-        return ADCInterface.send_command(comport, "CURR", 0.012)
+        return ADCInterface.send_command(comport, "CURR", 0.04)
 
     @staticmethod
     def adc_full_init(comport):
         initialised = False
 
-        registers = ADCInterface.read_register(comport)
-        if ('38 de' in registers) and ('80 0' in registers) and ('10 40' in registers) and ('28 0' in registers):
-            initialised = True
-            print('ADC Already Initialised')
+        for attempt in range(10):
+            registers = ADCInterface.read_register(comport)
+            if ('38 de' in registers) and ('80 0' in registers) and ('10 40' in registers) and ('28 0' in registers):
+                initialised = True
+                print('ADC Already Initialised')
+                break
+            else:
+                print(f'ADC Reg returned: {registers} on attempt {attempt}')
+                time.sleep(0.5)
 
         while not initialised:
             ADCInterface.reset_adc(comport)
@@ -151,7 +156,7 @@ class ADCInterface:
         ADCInterface.calibrate(comport)
 
 class Piano: 
-    def __init__(self): 
+    def __init__(self, pixels): 
         self.noOfKeys = 0
         self.noOfNotes = 0
         self.soundType = "piano"
@@ -163,10 +168,12 @@ class Piano:
         self.left_player = 0
         self.right_player = 0
 
-        self.left_LEDs = left_half_pixel_map
-        self.right_LEDs = right_half_pixel_map
+        self.left_LEDs = helper.PixelMap(pixels, PianoPixelMap.left_half_pixel_map, individual_pixels=True)
+        self.right_LEDs = helper.PixelMap(pixels, PianoPixelMap.right_half_pixel_map, individual_pixels=True)
 
         self.exit = False
+
+        self.notSharps = []
 
         """
         port = mido.open_input('abc', virtual=True)
@@ -181,20 +188,44 @@ class Piano:
 
         comport_lists = ["/dev/ttyACM0","/dev/ttyACM1"]
 
-        for serial_num in comport_lists: 
-            initialised_port = SerialPortManager.initialize_port(serial_num)
-            if ADCInterface.SN_read(initialised_port).contains("LEFT"): 
-                self.leftSTMComm = initialised_port
-            elif ADCInterface.SN_read(initialised_port).contains("RIGHT"): 
-                self.rightSTMComm = initialised_port
+        self.leftSTMComm = 0
+        self.rightSTMComm = 0
 
+        # print('Test1')
+        # for serial_num in comport_lists: 
+        #     initialised_port = SerialPortManager.initialize_port(serial_num)
+        #     print('Test2')
+        #     while self.leftSTMComm == 0 or self.rightSTMComm == 0:
+        #         print('Test3')
+        #         print(ADCInterface.SN_read(initialised_port)) 
+        #         if ADCInterface.SN_read(initialised_port) in "LEFT" and self.leftSTMComm == 0: 
+        #             print('Test4')
+        #             self.leftSTMComm = initialised_port
+        #         elif ADCInterface.SN_read(initialised_port) in "RIGHT":
+        #             self.rightSTMComm = initialised_port
+        #             print('Test5')
+        #         print('Test6')
+
+        self.leftSTMComm = SerialPortManager.initialize_port(comport_lists[0])
+        self.rightSTMComm = SerialPortManager.initialize_port(comport_lists[1])
         ADCInterface.adc_full_init(self.leftSTMComm)
         ADCInterface.adc_full_init(self.rightSTMComm)
 
+        # FOR DEBUG
+        # while True:
+        #     print(ADCInterface.read_adc(self.leftSTMComm))
+        #     time.sleep(0.001)
+
+
+        
+    
 
     def addKey(self, key):
         self.keys.append(key)
         self.noOfKeys += 1
+
+    def addNotSharps(self, key):
+        self.notSharps.append(key)
 
     def addNotes(self, notes):
         self.notes = self.notes + notes
@@ -223,13 +254,27 @@ class Piano:
                         key.led_off()
             time.sleep(0.05)
 
+    def loop_LEDs_Game(self):
+        
+        #used for self play - parse midi song
+        print("thread started")
+        
+        while not self.exit:
+            for key in self.keys:
+                if key.getLEDState() != key.getState():
+                    if key.getState() == 1:
+                        key.led_on()
+                    else: 
+                        key.led_off()
+            time.sleep(0.1)
+
     def loop_ADCs(self):
         #used for self play - parse midi song
         print("ADC thread started")
-
-        left_keys = piano.keys[:12]
-        right_keys = piano.keys[11:]
         
+        self.left_keys = self.keys[:12]
+        self.right_keys = self.keys[12:]
+
         while not self.exit:
             # Read ADC data for key presses
             left_return = ADCInterface.read_adc(self.leftSTMComm)
@@ -242,25 +287,28 @@ class Piano:
                 for index, active_state in enumerate(left_return): 
                     if int(active_state) == 1 and self.left_keys[index].getState() == 1:
                         # Left player pressed an active key
-                        left_player += 1
+                        self.left_player += 1
                 
                 for index, active_state in enumerate(right_return): 
                     if int(active_state) == 1 and self.right_keys[index].getState() == 1:
                         # Left player pressed an active key
-                        right_player += 1
+                        self.right_player += 1
 
-            time.sleep(0.05) #run every 50 ms -> 20 times a second...
+            time.sleep(0.03) #run every 30 ms 
 
     def exit_loop(self):
         input('Press to exit')
         self.exit = True
 
     def exit_loop_freeplay(self):
-        val = input('Press to exit or change scale')
-        if (int(val) >= 1) and (int(val) <= 6): 
-            self.setScale()
-        else:
-            self.exit = True
+        while not self.exit:
+            val = input('Press to exit or change scale')
+            try:
+                if (int(val) >= 1) and (int(val) <= 6): 
+                    self.setScale(int(val))
+            except:
+                print('Exiting Loop')
+                self.exit = True
 
     def loopKeys(self, active):
         self.resetLights()
@@ -271,9 +319,17 @@ class Piano:
         threading.Thread(target=self.exit_loop_freeplay, daemon=True).start()
 
         while not self.exit:
-            leftReturn = ADCInterface.read_adc(self.leftSTMComm)
-            rightReturn = ADCInterface.read_adc(self.rightSTMComm)
+            for attempt in range(4):
+                leftReturn = ADCInterface.read_adc(self.leftSTMComm)
+                if  10 < len(leftReturn):
+                    break
 
+            for attempt in range(4):
+                rightReturn = ADCInterface.read_adc(self.rightSTMComm)
+                if  10 < len(rightReturn):
+                    break
+
+            print(leftReturn + ',' + rightReturn)
             #only continue if both ports returned something of a certain length (at least twelve 0/1s seperated by commas)
             if (len(leftReturn) >= 23) and (len(rightReturn) >= 23): 
                 self.combined = (leftReturn + "," + rightReturn).split(",")
@@ -286,87 +342,85 @@ class Piano:
                         #there has been a state change
                         if int(self.combined[val]) == 1:
                             key.notePressed()
+                            # threading.Thread(target=key.notePressed(), daemon=True).start()
                         else: 
                             key.noteReleased()
-            time.sleep(0.05)
+                            # threading.Thread(target=key.notePressed(), daemon=True).start()
+                # time.sleep(0.05)
 
-    def read_in_groups_of_two(file_path):
-        with open(file_path, 'r') as file:
-            while True:
-                # Read two lines from the file
-                line1 = file.readline()
-                line2 = file.readline()
+    # def read_in_groups_of_two(self, file_path):
+    #     with open(file_path, 'r') as file:
+    #         while True:
+    #             # Read two lines from the file
+    #             line1 = file.readline()
+    #             line2 = file.readline()
                 
-                # If both lines are empty, we're at the end of the file
-                if not line1 and not line2:
-                    break
+    #             # If both lines are empty, we're at the end of the file
+    #             if not line1 and not line2:
+    #                 break
                 
-                # Yield the two lines as a tuple (or handle them)
-                yield (line1.strip(), line2.strip())
+    #             # Yield the two lines as a tuple (or handle them)
+    #             yield (line1.strip(), line2.strip())
 
-    def and_operation(array1, array2):
-        # Perform element-wise AND operation
-        return [a & b for a, b in zip(array1, array2)]
+    # def or_operation(self, array1, array2):
+    #     # Perform element-wise AND operation
+    #     return [a | b for a, b in zip(array1, array2)]
     
     def chopsticks(self): 
         self.resetLights()
         print("Playing chopsticks game...")#
-        
-        OnTime_Delay = 4
-        OffTime_Delay = 1
-        constant_delay = 0.25
+         
+        # Load the MIDI file for Chopsticks
+        midi_song = "TimedGame/Chopsticks_Good.mid"  # Replace with the correct path to your MIDI file
+        mid = mido.MidiFile(midi_song)
 
-        # Load the file for Chopsticks
-        midi_song = "TimedGame/chopsticks.txt"  # Replace with the correct path to your MIDI file
-        
-        with open(midi_song, 'r') as file:
-            line1 = file.readline()
-            # discard line 1 
+        for key in self.keys:
+            print("key note ", key.getNote().getMidiNumber())
 
-            line2 = file.readline()
-            # obtain the on/off delay speed for line 2
-            # discard line 2
+        # Find the appropriate scale for the song
+        max_note = max(msg.note for msg in mid if msg.type in ['note_on', 'note_off'])
+        scale = int(max_note -1/ 12) - 1
+        print("SCALE", scale)
+        self.setScale(scale)
+
+        for key in self.keys:
+            print("key note ", key.getNote().getMidiNumber())
 
         # Initialize player scores
         self.left_player = 0
         self.right_player = 0
 
         # Start LED thread for visual effects
-        threading.Thread(target=self.loop_LEDs, daemon=True).start()
+        self.exit = False
+        threading.Thread(target=self.loop_LEDs_Game, daemon=True).start()
 
         # Start ADC thread for tracking the pressed keys vs the active song keys
-        threading.Thread(target=self.loop_ADC, daemon=True).start()
+        threading.Thread(target=self.loop_ADCs, daemon=True).start()
 
-        self.exit = False
         threading.Thread(target=self.exit_loop, daemon=True).start()
 
         # Play the MIDI file
         print("Game starting. Follow the lights!")
 
-        # JUST play the song on whatever scale is currently enabled
-        for line1, line2 in read_in_groups_of_two(file_path):
-            line1 = file.readline()
-            digit_array1 = [int(char) for char in line1 if char.isdigit()]
+        # just play the song
+        for msg in mid.play():
+            # Send the MIDI message to play the sound
+            midioutPort.send(msg)
+            print(msg)
 
-            line2 = file.readline()
-            digit_array2 = [int(char) for char in line2 if char.isdigit()]
-
-            combined_array = and_operation(array1, array2)
-
-            print(combined_array)
-            
-            # play keys and wait
-            for val, key in enumerate(self.keys):
-                if combined_array[val] == 1:
-                    key.notePressed()
-                else: 
-                    key.noteReleased()
-            time.sleep(OnTime_Delay * constant_delay)
-
-            # STOP keys and wait
-            for val, key in enumerate(self.keys):
-                key.noteReleased()  	
-            time.sleep(OffTime_Delay * constant_delay)
+            # Handle note events
+            if msg.type in ['note_on', 'note_off']:
+                print("here2")
+                for key in self.keys:
+                    # print("key note ", key.getNote().getMidiNumber())
+                    # print("midi note ", msg.note)
+                         
+                    if msg.note == key.getNote().getMidiNumber():
+                        print("here")
+                        if msg.type == 'note_on' and msg.velocity > 0:
+                            key.selfPlayActive()  # Light up the key
+                        elif msg.type == 'note_off' or msg.velocity == 0:
+                            key.selfPlayStop()  # Turn off the light
 
             if self.exit:
                 break
@@ -414,8 +468,18 @@ class Piano:
     def setScale(self, scale_select): 
         
         if (scale_select >= 1) and (scale_select <= 6):
-            scale_select -= 1
-            scale_select = scale_select*12
+            if scale_select == 1: 
+                scale_select = 0
+            elif scale_select == 2: 
+                scale_select = 12
+            elif scale_select == 3: 
+                scale_select = 24
+            elif scale_select == 4: 
+                scale_select = 36
+            elif scale_select == 5:
+                scale_select = 48
+            elif scale_select == 6:  
+                scale_select = 60
             for key in self.keys:
                 print(scale_select)
                 key.setNote(self.notes[scale_select])
