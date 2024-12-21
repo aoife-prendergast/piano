@@ -71,6 +71,7 @@ from pixel_mapping import PianoPixelMap
 
 warm_white = (253, 244, 220)
 midioutPort = mido.open_output('xyz:xyz 129:0')
+LED_COUNT = 2245
 
 class SerialPortManager:
     @staticmethod
@@ -167,18 +168,14 @@ class Piano:
 
         self.left_player = 0
         self.right_player = 0
+        self.pixel = pixels
 
-        self.left_LEDs = helper.PixelMap(pixels, PianoPixelMap.left_half_pixel_map, individual_pixels=True)
-        self.right_LEDs = helper.PixelMap(pixels, PianoPixelMap.right_half_pixel_map, individual_pixels=True)
+        self.left_LEDs = helper.PixelMap(self.pixel, PianoPixelMap.left_half_pixel_map, individual_pixels=True)
+        self.right_LEDs = helper.PixelMap(self.pixel, PianoPixelMap.right_half_pixel_map, individual_pixels=True)
 
         self.exit = False
 
         self.notSharps = []
-
-        """
-        port = mido.open_input('abc', virtual=True)
-        print(mido.get_output_names())
-        """
 
         midioutPort = mido.open_output('xyz:xyz 129:0')
         
@@ -194,14 +191,11 @@ class Piano:
         while self.leftSTMComm == 0 or self.rightSTMComm == 0:
             for serial_num in comport_lists: 
                 initialised_port = SerialPortManager.initialize_port(serial_num)
-                print(ADCInterface.SN_read(initialised_port)) 
                 if "LEFT" in ADCInterface.SN_read(initialised_port) and self.leftSTMComm == 0: 
                     self.leftSTMComm = initialised_port
                 elif "RIGHT" in ADCInterface.SN_read(initialised_port):
                     self.rightSTMComm = initialised_port
-  
-        # self.leftSTMComm = SerialPortManager.initialize_port(comport_lists[0])
-        # self.rightSTMComm = SerialPortManager.initialize_port(comport_lists[1])
+
         ADCInterface.adc_full_init(self.leftSTMComm)
         ADCInterface.adc_full_init(self.rightSTMComm)
 
@@ -209,7 +203,6 @@ class Piano:
         # while True:
         #     print(ADCInterface.read_adc(self.leftSTMComm))
         #     time.sleep(0.001)
-
 
         
     def addKey(self, key):
@@ -222,43 +215,40 @@ class Piano:
     def addNotes(self, notes):
         self.notes = self.notes + notes
         self.noOfNotes = len(self.notes)
+
+    def showGameResult(self):
+        print("Setting all key unactive colors")
+        for key in self.keys:
+            key.showGameColor()
+        self.updateLEDs()
         
     def resetLights(self):
         print("Setting all key unactive colors")
         for key in self.keys:
             key.setUnactiveState()
+        self.updateLEDs()
 
     def calibrate_ADCs(self): 
         ADCInterface.calibrate(self.leftSTMComm)
         ADCInterface.calibrate(self.rightSTMComm)
 
+    def updateLEDs(self): 
+        current_index = 0
+        for key in self.keys: 
+            for i in range(current_index, current_index + key.getLEDBlockSize()): 
+                if i < LED_COUNT:  # Ensure we don't exceed the total number of LEDs
+                    self.pixel[i] = key.getLEDColor()
+            current_index += key.getLEDBlockSize()
+        self.pixel.show()
+
     def loop_LEDs(self):
         
         #used for self play - parse midi song
-        print("thread started")
+        print("LED thread started")
         
         while not self.exit:
-            for key in self.keys:
-                if key.getLEDState() != key.getState():
-                    if key.getState() == 1:
-                        key.led_on()
-                    else: 
-                        key.led_off()
-            time.sleep(0.05)
+            self.updateLEDs()
 
-    def loop_LEDs_Game(self):
-        
-        #used for self play - parse midi song
-        print("thread started")
-        
-        while not self.exit:
-            for key in self.keys:
-                if key.getLEDState() != key.getState():
-                    if key.getState() == 1:
-                        key.led_on()
-                    else: 
-                        key.led_off()
-            time.sleep(0.1)
 
     def loop_ADCs(self):
         #used for self play - parse midi song
@@ -286,7 +276,7 @@ class Piano:
                         # Left player pressed an active key
                         self.right_player += 1
 
-            time.sleep(0.03) #run every 30 ms 
+            time.sleep(0.01) #run every 30 ms 
 
     def exit_loop(self):
         input('Press to exit')
@@ -309,6 +299,7 @@ class Piano:
         #     key.makeActive()
         self.exit = False
         threading.Thread(target=self.exit_loop_freeplay, daemon=True).start()
+        threading.Thread(target=self.loop_LEDs, daemon=True).start()
 
         while not self.exit:
             for attempt in range(4):
@@ -339,44 +330,25 @@ class Piano:
                             key.noteReleased()
                             # threading.Thread(target=key.notePressed(), daemon=True).start()
                 # time.sleep(0.05)
+        self.exit = True
 
-    # def read_in_groups_of_two(self, file_path):
-    #     with open(file_path, 'r') as file:
-    #         while True:
-    #             # Read two lines from the file
-    #             line1 = file.readline()
-    #             line2 = file.readline()
-                
-    #             # If both lines are empty, we're at the end of the file
-    #             if not line1 and not line2:
-    #                 break
-                
-    #             # Yield the two lines as a tuple (or handle them)
-    #             yield (line1.strip(), line2.strip())
-
-    # def or_operation(self, array1, array2):
-    #     # Perform element-wise AND operation
-    #     return [a | b for a, b in zip(array1, array2)]
     
     def chopsticks(self): 
         self.resetLights()
-        print("Playing chopsticks game...")#
-         
-        # Load the MIDI file for Chopsticks
-        midi_song = "TimedGame/Chopsticks_Good.mid"  # Replace with the correct path to your MIDI file
-        mid = mido.MidiFile(midi_song)
+        print("Playing chopsticks game...")
+        
+        # Initialise the pixelmap for games
+        self.game_map = []
 
-        for key in self.keys:
-            print("key note ", key.getNote().getMidiNumber())
+        # Load the MIDI file for Chopsticks
+        midi_song = "TimedGame/Chopsticks_Good_2.mid"  # Replace with the correct path to your MIDI file
+        mid = mido.MidiFile(midi_song)
 
         # Find the appropriate scale for the song
         max_note = max(msg.note for msg in mid if msg.type in ['note_on', 'note_off'])
-        scale = int(max_note -1/ 12) - 1
+        scale = int((max_note - 1)/ 12) -2 # should be -1 for everything but -2 from max for custom chopsticks midi
         print("SCALE", scale)
         self.setScale(scale)
-
-        for key in self.keys:
-            print("key note ", key.getNote().getMidiNumber())
 
         # Initialize player scores
         self.left_player = 0
@@ -384,7 +356,7 @@ class Piano:
 
         # Start LED thread for visual effects
         self.exit = False
-        threading.Thread(target=self.loop_LEDs_Game, daemon=True).start()
+        threading.Thread(target=self.loop_LEDs, daemon=True).start()
 
         # Start ADC thread for tracking the pressed keys vs the active song keys
         threading.Thread(target=self.loop_ADCs, daemon=True).start()
@@ -398,56 +370,61 @@ class Piano:
         for msg in mid.play():
             # Send the MIDI message to play the sound
             midioutPort.send(msg)
-            print(msg)
 
             # Handle note events
             if msg.type in ['note_on', 'note_off']:
-                print("here2")
-                for key in self.keys:
-                    # print("key note ", key.getNote().getMidiNumber())
-                    # print("midi note ", msg.note)
+                for val, key in enumerate(self.keys):
                          
                     if msg.note == key.getNote().getMidiNumber():
-                        print("here")
                         if msg.type == 'note_on' and msg.velocity > 0:
-                            key.selfPlayActive()  # Light up the key
+                            key.gamePlay()  # Turn ON the light
                         elif msg.type == 'note_off' or msg.velocity == 0:
-                            key.selfPlayStop()  # Turn off the light
+                            key.gameStop()  # Turn OFF the light
 
             if self.exit:
                 break
+
+        self.exit = True
 
         # Display the results
         print("Game Over!")
         print(f"Player 1 Score: {self.left_player}")
         print(f"Player 2 Score: {self.right_player}")
 
+
         if self.left_player > self.right_player:
             print("Player 1 wins!")
             #light up LEDs green for left
-            left_color = GREEN
-            right_color = RED
+            for key in self.left_keys: 
+                key.setGameColor(GREEN)
+            for key in self.right_keys: 
+                key.setGameColor(RED)
             
         elif self.right_player > self.left_player:
             print("Player 2 wins!")
             #light up LEDs green for right
-            left_color = RED
-            right_color = GREEN
+            for key in self.left_keys: 
+                key.setGameColor(RED)
+            for key in self.right_keys: 
+                key.setGameColor(GREEN)
+
         else:
             print("It's a tie!")
             #light up LEDs Rainbow
-            left_color = GREEN
-            right_color = GREEN
+            for key in self.keys: 
+                key.setGameColor(ORANGE)
+
 
         # communicate the results by lighting up the LED for the winner...
-        for i in range(10):
-            Solid(pixel_object=self.left_LEDs, color = left_color).animate()
-            Solid(pixel_object=self.right_LEDs, color = right_color).animate()
-            time.sleep(0.33)
+        for i in range(4):
+            self.showGameResult()
+            time.sleep(0.5)
             
-            Solid(pixel_object=self.left_LEDs, color = warm_white).animate()
-            Solid(pixel_object=self.right_LEDs, color = warm_white).animate()
-            time.sleep(0.33)
+            self.resetLights()
+            time.sleep(0.25)
+        
+        for key in self.keys: 
+            key.setGameColor(BLUE)
                     
     def countKeys(self):
         return self.noOfKeys
@@ -473,8 +450,10 @@ class Piano:
             elif scale_select == 6:  
                 scale_select = 60
             for key in self.keys:
+                print(f'Note before: {key.getNote().getMidiNumber()}')
                 print(scale_select)
                 key.setNote(self.notes[scale_select])
+                print(f'Note after: {key.getNote().getMidiNumber()}')
                 scale_select+=1
         else: 
             print("Invalid Scale Input")
@@ -515,6 +494,8 @@ class Piano:
             if self.exit:
                 break   
 
+        self.exit = True
+
 class Note:
     def __init__(self, name, midiNumber): 
         self.name = name
@@ -541,7 +522,7 @@ class Note:
         return self.midiNumber
 
 class Key: 
-    def __init__(self, note, pixel_mappa = None):  # Add back sensor as first input
+    def __init__(self, note, LEDLen, pixel_mappa = None):  # Add back sensor as first input
         # self.sensor = sensor
         self.note = note
         self.state = 0
@@ -554,17 +535,30 @@ class Key:
         # LEDs linked to key
         self.map = pixel_mappa
         self.LEDState = 0
+        self.LEDCurrentColor = warm_white
 
         self.dark = Solid(pixel_object=self.map, color = warm_white)
         self.light = Solid(pixel_object=self.map, color =  RED)
 
+        self.LEDActiveColor = warm_white
+        self.LEDUnactiveColor = warm_white
         #self.led_timer = threading.Timer(0.1, None)
+
+        self.gameColor = BLUE
+
+        self.LEDBlockSize = LEDLen
         
     def __str__(self):
         return self.note.name
 
     def setUnactiveState(self):
-        self.dark.animate()
+        self.LEDCurrentColor = self.LEDUnactiveColor
+
+    def showGameColor(self):
+        self.LEDCurrentColor = self.gameColor
+
+    def setGameColor(self, input):
+        self.gameColor = input
 
     def led_on(self):
         # print("turned on LEDs ", self)
@@ -599,7 +593,8 @@ class Key:
         # print("PLAY: ", self.note.getName())
         self.note.playSound()
         # update LEDs here 
-        self.led_on()
+        #self.led_on()
+        self.LEDCurrentColor = self.LEDActiveColor
         self.state = 1
 
     def noteReleased(self): 
@@ -607,7 +602,8 @@ class Key:
         self.note.stopSound()
         
         # update LEDs here - Leave LEDs on for as long as key pressed
-        self.led_off()
+        #self.led_off()
+        self.LEDCurrentColor = self.LEDUnactiveColor
         self.state = 0
             
     def selfPlayActive(self):
@@ -615,11 +611,21 @@ class Key:
         #self.led_on()
         # print("self play")
         self.state = 1
+        self.LEDCurrentColor = self.LEDActiveColor
         #print(self.note.getName())
     
     def selfPlayStop(self):
         #self.led_off()
         # print("self stop")
+        self.state = 0
+        self.LEDCurrentColor = self.LEDUnactiveColor
+
+    def gamePlay(self):
+        self.LEDCurrentColor = self.LEDActiveColor
+        self.state = 1
+    
+    def gameStop(self):
+        self.LEDCurrentColor = self.LEDUnactiveColor
         self.state = 0
         
     # Getter and Setters
@@ -638,6 +644,9 @@ class Key:
     def getState(self): 
         return self.state
 
+    def getLEDColor(self): 
+        return self.LEDCurrentColor
+
     def getLEDState(self): 
         return self.LEDState
     
@@ -645,7 +654,12 @@ class Key:
         self.state = state
 
     def setActiveColour(self, input): 
+        self.LEDActiveColor = input
         self.light = Solid(pixel_object=self.map, color =  input)
 
     def setUnactiveColour(self, input): 
+        self.LEDUnactiveColor = input
         self.dark = Solid(pixel_object=self.map, color = input)
+
+    def getLEDBlockSize(self):
+        return self.LEDBlockSize

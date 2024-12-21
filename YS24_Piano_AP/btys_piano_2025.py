@@ -151,9 +151,12 @@ def main(args):
     As7 = Note("A#7",106)
     Bn7 = Note("Bn7",107)
 
+    selectFewSongs = [441,83,616,461]
+
     pixel_pin = board.D18
     pixel_num = 2245
-    pixels = neopixel.NeoPixel(pixel_pin, pixel_num, brightness=1, auto_write=False)
+    ORDER = neopixel.GRB      # Pixel color order
+    pixels = neopixel.NeoPixel(pixel_pin, pixel_num, brightness=1, auto_write=False, pixel_order=ORDER)
 
     key1map = helper.PixelMap(pixels, PianoPixelMap.key_1_pixel_map, individual_pixels=True)
     key2map = helper.PixelMap(pixels, PianoPixelMap.key_2_pixel_map, individual_pixels=True)
@@ -181,36 +184,38 @@ def main(args):
     key24map = helper.PixelMap(pixels, PianoPixelMap.key_24_pixel_map, individual_pixels=True)
     fullpainomappa = helper.PixelMap(pixels, PianoPixelMap.full_piano_map, individual_pixels=True)
 
+    # Manually calculate the total number of pixels
+    total_pixels = sum(len(pixels) for pixels in PianoPixelMap.key_24_pixel_map)
+    print(f"Total individual pixels: {total_pixels}")
 
     # key_1 =  Key(Button(4,bounce_time=0.05),Cn3, key1map)
-    key_1 =  Key(Cn3, key1map)
-    key_3 =  Key(Dn3, key3map)
-    key_5 =  Key(En3, key5map)
-    key_6 =  Key(Fn3, key6map)
-    key_8 =  Key(Gn3, key8map)
-    key_10 = Key(An3, key10map)
-    key_12 = Key(Bn3, key12map)
-    
-    key_2 =  Key(Cs3, key2map)
-    key_4 =  Key(Ds3, key4map)
-    key_7 =  Key(Fs3, key7map)
-    key_9 =  Key(Gs3, key9map)
-    key_11 = Key(As3, key11map)
-    
-    
-    key_13 = Key(Cn4, key13map)
-    key_15 = Key(Dn4, key15map)
-    key_17 = Key(En4, key17map)
-    key_18 = Key(Fn4, key18map)
-    key_20 = Key(Gn4, key20map)
-    key_22 = Key(An4, key22map)
-    key_24 = Key(Bn4, key24map)
+    key_1 =  Key(Cn3, sum(len(pixels) for pixels in PianoPixelMap.key_1_pixel_map), key1map)
+    key_3 =  Key(Dn3, sum(len(pixels) for pixels in PianoPixelMap.key_3_pixel_map), key3map)
+    key_5 =  Key(En3, sum(len(pixels) for pixels in PianoPixelMap.key_5_pixel_map), key5map)
+    key_6 =  Key(Fn3, sum(len(pixels) for pixels in PianoPixelMap.key_6_pixel_map), key6map)
+    key_8 =  Key(Gn3, sum(len(pixels) for pixels in PianoPixelMap.key_8_pixel_map), key8map)
+    key_10 = Key(An3, sum(len(pixels) for pixels in PianoPixelMap.key_10_pixel_map), key10map)
+    key_12 = Key(Bn3, sum(len(pixels) for pixels in PianoPixelMap.key_12_pixel_map), key12map)
 
-    key_14 = Key(Cs4, key14map)
-    key_16 = Key(Ds4, key16map)
-    key_19 = Key(Fs4, key19map)
-    key_21 = Key(Gs4, key21map)
-    key_23 = Key(As4, key23map)
+    key_2 =  Key(Cs3, sum(len(pixels) for pixels in PianoPixelMap.key_2_pixel_map), key2map)
+    key_4 =  Key(Ds3, sum(len(pixels) for pixels in PianoPixelMap.key_4_pixel_map), key4map)
+    key_7 =  Key(Fs3, sum(len(pixels) for pixels in PianoPixelMap.key_7_pixel_map), key7map)
+    key_9 =  Key(Gs3, sum(len(pixels) for pixels in PianoPixelMap.key_9_pixel_map), key9map)
+    key_11 = Key(As3, sum(len(pixels) for pixels in PianoPixelMap.key_11_pixel_map), key11map)
+
+    key_13 = Key(Cn4, sum(len(pixels) for pixels in PianoPixelMap.key_13_pixel_map), key13map)
+    key_15 = Key(Dn4, sum(len(pixels) for pixels in PianoPixelMap.key_15_pixel_map), key15map)
+    key_17 = Key(En4, sum(len(pixels) for pixels in PianoPixelMap.key_17_pixel_map), key17map)
+    key_18 = Key(Fn4, sum(len(pixels) for pixels in PianoPixelMap.key_18_pixel_map), key18map)
+    key_20 = Key(Gn4, sum(len(pixels) for pixels in PianoPixelMap.key_20_pixel_map), key20map)
+    key_22 = Key(An4, sum(len(pixels) for pixels in PianoPixelMap.key_22_pixel_map), key22map)
+    key_24 = Key(Bn4, sum(len(pixels) for pixels in PianoPixelMap.key_24_pixel_map), key24map)
+
+    key_14 = Key(Cs4, sum(len(pixels) for pixels in PianoPixelMap.key_14_pixel_map), key14map)
+    key_16 = Key(Ds4, sum(len(pixels) for pixels in PianoPixelMap.key_16_pixel_map), key16map)
+    key_19 = Key(Fs4, sum(len(pixels) for pixels in PianoPixelMap.key_19_pixel_map), key19map)
+    key_21 = Key(Gs4, sum(len(pixels) for pixels in PianoPixelMap.key_21_pixel_map), key21map)
+    key_23 = Key(As4, sum(len(pixels) for pixels in PianoPixelMap.key_23_pixel_map), key23map)
     
     #unactive colors for Sharps
     sharp_default = (255,0,0)
@@ -254,22 +259,6 @@ def main(args):
     key_24.setActiveColour(MAGENTA)
     
     piano = Piano(pixels)
-
-    """
-    piano.addKey(key_Cn2)
-    piano.addKey(key_Cs2)
-    piano.addKey(key_Dn2)
-    piano.addKey(key_Ds2)
-    piano.addKey(key_En2)
-    piano.addKey(key_Fn2)
-    piano.addKey(key_Fs2)
-    piano.addKey(key_Gn2)
-    piano.addKey(key_Gs2)
-    piano.addKey(key_An2)
-    piano.addKey(key_As2)
-    piano.addKey(key_Bn2)
-    """
-
     
     piano.addKey(key_1)
     piano.addKey(key_2)
@@ -296,22 +285,6 @@ def main(args):
     piano.addKey(key_22)
     piano.addKey(key_23)
     piano.addKey(key_24)
-
-    piano.addNotSharps(key_1)
-    piano.addNotSharps(key_3)
-    piano.addNotSharps(key_5)
-    piano.addNotSharps(key_6)
-    piano.addNotSharps(key_8)
-    piano.addNotSharps(key_10)
-    piano.addNotSharps(key_12)
-    piano.addNotSharps(key_13)
-    piano.addNotSharps(key_15)
-    piano.addNotSharps(key_17)
-    piano.addNotSharps(key_18)
-    piano.addNotSharps(key_20)
-    piano.addNotSharps(key_22)
-    piano.addNotSharps(key_24)
-
     
     piano.addNotes([Cn1,Cs1,Dn1,Ds1,En1,Fn1,Fs1,Gn1,Gs1,An1,As1,Bn1])
     piano.addNotes([Cn2,Cs2,Dn2,Ds2,En2,Fn2,Fs2,Gn2,Gs2,An2,As2,Bn2])
@@ -326,15 +299,19 @@ def main(args):
     rainbow = Rainbow(pixels, speed=0.0075, period=5, step=0.1)
 
     while(1):
+        rainbow.animate()    
 
         print("What game would you like to play:")
         print("\nOptions are:")
-        print("\t1 -> FREE PLAY MODE")
-        print("\t2 -> SET scale")
-        print("\t3 -> Self Play Song")
-        print("\t4 -> Chopsticks Game")
-        print("\t55 -> Recalibrate ADCs")
-        print("\t0 -> END THE PROGRAM")
+        print("\t1  -> FREE PLAY MODE")
+        print("\t2  -> SET scale")
+        print("\t3  -> Self Play Song")
+        print("\t4  -> Chopsticks Game")
+        print("\t5  -> Self Play Random Song")
+        print("\t55 -> Self Play Random Song - Difficulty choice")
+        print("\t54 -> Group of Select Few")
+        print("\t66 -> Recalibrate ADCs")
+        print("\t0  -> END THE PROGRAM")
 
         try:
             game = int(input("Enter your choice: "))
@@ -370,7 +347,12 @@ def main(args):
 
             # Display the songs with indices
             for i, song in enumerate(songs):
-                print(f"Number: {i}, Song: {song.name}")
+                try:
+                     if "Lord Huron" in song.name:
+                        print(f"Number: {i}, Song: {song.name}")
+                except ValueError:
+                    print("Something wrong with the file name")
+                    continue
             
             # User selects a song by index
             song_index = int(input("Enter the song number: "))
@@ -385,7 +367,99 @@ def main(args):
             print(" ************ CHOPSTICKS... ********* ")
             piano.chopsticks()
 
+        elif game == 5: 
+            print("\n ")
+            print(" ************ Random Song ********* ")
+            print("\n ")
+            songs = list(Path("midi_songs/").rglob('*.mid'))
+
+            song_index = random.randint(0, len(songs)-1)
+
+            try:
+                print(f"Number: {song_index}, Song: {songs[song_index].name}")
+            except ValueError:
+                print("Something wrong with the file name")
+                continue
+            selected_song = songs[song_index]
+
+            midiSong = str(selected_song)
+            piano.parseSongMidi(midiSong)
+
+        elif game == 54: 
+            print("\n ")
+            print(" ************ Random Song - Select Few ********* ")
+            print("\n ")
+            songs = list(Path("midi_songs/").rglob('*.mid'))
+
+            song_index_list = random.randint(0, len(selectFewSongs)-1)
+
+            song_index = selectFewSongs[song_index_list]
+
+            try:
+                print(f"Number: {song_index}, Song: {songs[song_index].name}")
+            except ValueError:
+                print("Something wrong with the file name")
+                continue
+            selected_song = songs[song_index]
+
+            midiSong = str(selected_song)
+            piano.parseSongMidi(midiSong)  
+
         elif game == 55: 
+            print("\n ")
+            print(" ************ Random Song - Measure ********* ")
+            print("\n ")
+            songs = list(Path("midi_songs/").rglob('*.mid'))
+            songsFiltered = []
+
+            try:
+                difficulty = int(input("Enter your Difficulty Choice: "))
+            except ValueError:
+                print("Invalid input!.")
+                continue
+
+            # Display the songs with indices
+            for i, song in enumerate(songs):
+                if difficulty == 1:
+                    if "(Easy)" in song.name:
+                        print("chose Easy")
+                        songsFiltered.append(song)
+                elif difficulty == 2:
+                    if "(Medium)" in song.name:
+                        print("chose Medium")
+                        songsFiltered.append(song)
+                elif difficulty == 3:
+                    if "(Hard)" in song.name:
+                        print("chose Hard")
+                        songsFiltered.append(song)
+                elif difficulty == 4:
+                    if "(Advanced)" in song.name:
+                        print("chose Advanced")
+                        songsFiltered.append(song)
+                else: 
+                    print("chose all songs instead")
+                    songsFiltered.append(song)
+            
+            for i,song in enumerate(songsFiltered):
+                try:
+                    print(f"Number: {i}, Song: {song.name}")
+                except ValueError:
+                    print("Something wrong with the file name")
+                    continue
+            print("done")
+            song_index = random.randint(0, len(songsFiltered)-1)
+
+            try:
+                print(f"Number: {song_index}, Song: {songsFiltered[song_index].name}")
+            except ValueError:
+                print("Something wrong with the file name")
+                continue
+            selected_song = songsFiltered[song_index]
+
+            midiSong = str(selected_song)
+            piano.parseSongMidi(midiSong)  
+        
+        elif game == 66: 
             print("\n ")
             Solid(pixel_object=fullpainomappa, color = PINK).animate()  
             print(" ************ I AM CALIBRATING... ********* ")
@@ -398,8 +472,7 @@ def main(args):
         else: 
             print("\nInvalid Input!!! Try again :)")
 
-        rainbow.animate()    
-            
+        
     return 0
 
 if __name__ == '__main__':
