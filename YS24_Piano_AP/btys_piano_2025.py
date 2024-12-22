@@ -22,32 +22,23 @@
 #  
 #  
 
-from piano_key_25 import Key 
-from piano_key_25 import Piano
-from piano_key_25 import Note
+from piano_key_25 import Key, Note, Piano
 import pygame
-from pygame import mixer
 import time
 import random
-import simpleaudio
-from gpiozero import *
 from pathlib import Path
-import RPi.GPIO as GPIO
 
 from adafruit_led_animation import helper
 from adafruit_led_animation.color import *
 import board
 import neopixel
 from neopixel import NeoPixel
-from pydub import AudioSegment
-from pydub.playback import _play_with_simpleaudio
 
 from adafruit_led_animation.animation.comet import Comet
 from adafruit_led_animation.animation.rainbowcomet import RainbowComet
 from adafruit_led_animation.animation.rainbowchase import RainbowChase
 from adafruit_led_animation.animation.chase import Chase
 from adafruit_led_animation.animation.rainbow import Rainbow
-from adafruit_led_animation.sequence import AnimationSequence
 from adafruit_led_animation.animation.solid import Solid
 
 import digitalio
@@ -58,12 +49,12 @@ import rtmidi
 import sys
 
 
-def main(args):
-    
-    #pygame.init()
-    #pygame.mixer.init(44100, -16,2,2048)
+pixel_pin = board.D18
+pixel_num = 2245
+ORDER = neopixel.GRB      # Pixel color order
+sharp_default = (255,0,0)
 
-    # print(pygame.mixer.get_init())
+def main(args):
     
     #the sounds 
     Cn1 = Note("Cn1",24)
@@ -153,9 +144,6 @@ def main(args):
 
     selectFewSongs = [441,83,616,461]
 
-    pixel_pin = board.D18
-    pixel_num = 2245
-    ORDER = neopixel.GRB      # Pixel color order
     pixels = neopixel.NeoPixel(pixel_pin, pixel_num, brightness=1, auto_write=False, pixel_order=ORDER)
 
     key1map = helper.PixelMap(pixels, PianoPixelMap.key_1_pixel_map, individual_pixels=True)
@@ -185,8 +173,8 @@ def main(args):
     fullpainomappa = helper.PixelMap(pixels, PianoPixelMap.full_piano_map, individual_pixels=True)
 
     # Manually calculate the total number of pixels
-    total_pixels = sum(len(pixels) for pixels in PianoPixelMap.key_24_pixel_map)
-    print(f"Total individual pixels: {total_pixels}")
+    pixel_num = sum(len(pixels) for pixels in PianoPixelMap.key_24_pixel_map)
+    print(f"Total individual pixels: {pixel_num}")
 
     # key_1 =  Key(Button(4,bounce_time=0.05),Cn3, key1map)
     key_1 =  Key(Cn3, sum(len(pixels) for pixels in PianoPixelMap.key_1_pixel_map), key1map)
@@ -218,7 +206,6 @@ def main(args):
     key_23 = Key(As4, sum(len(pixels) for pixels in PianoPixelMap.key_23_pixel_map), key23map)
     
     #unactive colors for Sharps
-    sharp_default = (255,0,0)
     key_2.setUnactiveColour(sharp_default)
     key_4.setUnactiveColour(sharp_default)
     key_7.setUnactiveColour(sharp_default)
@@ -321,35 +308,21 @@ def main(args):
         
         if game == 1: 
             print("\nEntering FREE PLAY MODE")
-            """
-            time_old = time.perf_counter()
-            while(True):
-                time_taken = time.perf_counter() - time_old
-                print("Time: ", time_taken)
-                piano.loopKeys()
-                time_old = time_taken
-            """
             piano.loopKeys(True)
-            print("Back in main loop")
-    
             
         elif game == 2: 
             print("\n Changing Scale")
-            print("User input to set scale:")
-            scale_select = int(input())
+            scale_select = int(input("User input to set scale:"))
             piano.setScale(scale_select)
 
         elif game == 3: 
-            print("\n ")
-            songs = list(Path("midi_songs/").rglob('*.mid'))
-
             print("\nWhat song would you like to play:")
+            songs = list(Path("midi_songs/").rglob('*.mid'))
 
             # Display the songs with indices
             for i, song in enumerate(songs):
                 try:
-                     if "Lord Huron" in song.name:
-                        print(f"Number: {i}, Song: {song.name}")
+                    print(f"Number: {i}, Song: {song.name}")
                 except ValueError:
                     print("Something wrong with the file name")
                     continue
@@ -358,105 +331,94 @@ def main(args):
             song_index = int(input("Enter the song number: "))
             selected_song = songs[song_index]
 
-            midiSong = str(selected_song)
-            print("Time to play" + midiSong)
-            piano.parseSongMidi(midiSong)
+            print("Time to play" + str(selected_song))
+            piano.parseSongMidi(str(selected_song))
 
         elif game == 4: 
-            print("\n ")
-            print(" ************ CHOPSTICKS... ********* ")
+            print("\n ************ CHOPSTICKS... ********* ")
             piano.chopsticks()
 
         elif game == 5: 
-            print("\n ")
-            print(" ************ Random Song ********* ")
-            print("\n ")
+            print("\n ************ Random Song ********* \n")
             songs = list(Path("midi_songs/").rglob('*.mid'))
-
-            song_index = random.randint(0, len(songs)-1)
+            random_song = random.choice(songs)
 
             try:
-                print(f"Number: {song_index}, Song: {songs[song_index].name}")
+                print(f"Playing Song: {random_song.name}")
             except ValueError:
                 print("Something wrong with the file name")
                 continue
-            selected_song = songs[song_index]
 
-            midiSong = str(selected_song)
-            piano.parseSongMidi(midiSong)
+            piano.parseSongMidi(str(random_song))
 
         elif game == 54: 
-            print("\n ")
-            print(" ************ Random Song - Select Few ********* ")
-            print("\n ")
+            print("\n ************ Random Song - Select Few ********* \n")
             songs = list(Path("midi_songs/").rglob('*.mid'))
 
-            song_index_list = random.randint(0, len(selectFewSongs)-1)
-
-            song_index = selectFewSongs[song_index_list]
+            song_index = random.choice(selectFewSongs)
 
             try:
                 print(f"Number: {song_index}, Song: {songs[song_index].name}")
             except ValueError:
                 print("Something wrong with the file name")
                 continue
-            selected_song = songs[song_index]
 
-            midiSong = str(selected_song)
-            piano.parseSongMidi(midiSong)  
+            piano.parseSongMidi(str(songs[song_index]))
 
         elif game == 55: 
-            print("\n ")
-            print(" ************ Random Song - Measure ********* ")
-            print("\n ")
+            print("\n ************ Random Song - Measure ********* \n")
             songs = list(Path("midi_songs/").rglob('*.mid'))
             songsFiltered = []
 
             try:
                 difficulty = int(input("Enter your Difficulty Choice: "))
             except ValueError:
-                print("Invalid input!.")
+                print("\nInvalid input!")
                 continue
 
             # Display the songs with indices
             for i, song in enumerate(songs):
                 if difficulty == 1:
                     if "(Easy)" in song.name:
-                        print("chose Easy")
+                        print("\nChose Easy")
                         songsFiltered.append(song)
                 elif difficulty == 2:
                     if "(Medium)" in song.name:
-                        print("chose Medium")
+                        print("\nChose Medium")
                         songsFiltered.append(song)
                 elif difficulty == 3:
                     if "(Hard)" in song.name:
-                        print("chose Hard")
+                        print("\nChose Hard")
                         songsFiltered.append(song)
                 elif difficulty == 4:
+                    if "(Intermediate)" in song.name:
+                        print("\nChose Intermediate")
+                        songsFiltered.append(song)
+                elif difficulty == 5:
                     if "(Advanced)" in song.name:
-                        print("chose Advanced")
+                        print("\nhose Advanced")
                         songsFiltered.append(song)
                 else: 
-                    print("chose all songs instead")
+                    print("Invalid Choice... Chose all songs instead...")
                     songsFiltered.append(song)
             
+            print("\n List of Songs... :")
             for i,song in enumerate(songsFiltered):
                 try:
                     print(f"Number: {i}, Song: {song.name}")
                 except ValueError:
                     print("Something wrong with the file name")
                     continue
-            print("done")
-            song_index = random.randint(0, len(songsFiltered)-1)
+            print("\nDone")
 
+            random_song = random.choice(songsFiltered)
             try:
-                print(f"Number: {song_index}, Song: {songsFiltered[song_index].name}")
+                print(f"Playing Song: {random_song.name}")
             except ValueError:
-                print("Something wrong with the file name")
+                print("Something wrong with the file name...")
                 continue
-            selected_song = songsFiltered[song_index]
 
-            midiSong = str(selected_song)
+            midiSong = str(random_song)
             piano.parseSongMidi(midiSong)  
         
         elif game == 66: 
