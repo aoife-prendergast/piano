@@ -287,11 +287,13 @@ class Piano:
             # Validate data length before processing
             if (len(leftReturn) >= 23) and (len(rightReturn) >= 23): 
                 combined = (leftReturn + "," + rightReturn).split(",")
-                #print(combined)
+                combined_states = map(int, combined[:len(self.keys)])  # Limit to key count
+                #print(combined_states)
 
-                for val, key in enumerate(self.keys):
-                    if key.getState() != int(combined[val]):
-                        if int(self.combined[val]) == 1:
+                # Iterate through keys and handle state changes
+                for key, new_state in zip(self.keys, combined_states):
+                    if key.getState() != new_state:
+                        if new_state == 1:
                             key.notePressed()
                         else: 
                             key.noteReleased()
