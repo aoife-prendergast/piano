@@ -94,8 +94,8 @@ class SerialPortManager:
 
 class ADCInterface:
     @staticmethod
-    def send_command(comport, command, delay=0.05):
-        query = f"ADDR:777:ADC:MEAS:{command} 1.0 (@0)\n".encode()
+    def send_command(comport, command, delay=0.05, int_data=1):
+        query = f"ADDR:777:ADC:MEAS:{command} {int_data} (@0)\n".encode()
         comport.write(query)
         time.sleep(delay)
         return comport.read(comport.in_waiting).decode().strip()
@@ -127,19 +127,23 @@ class ADCInterface:
     def read_adc(comport):
         return ADCInterface.send_command(comport, "CURR", 0.04)
 
+    def set_threshold(comport, threshold):
+        return ADCInterface.send_command(comport, "POW", 0.04, threshold)
+
     @staticmethod
     def adc_full_init(comport):
         initialised = False
 
-        for attempt in range(10):
-            registers = ADCInterface.read_register(comport)
-            if ('38 de' in registers) and ('80 0' in registers) and ('10 40' in registers) and ('28 0' in registers):
-                initialised = True
-                print('ADC Already Initialised')
-                break
-            else:
-                print(f'ADC Reg returned: {registers} on attempt {attempt}')
-                time.sleep(0.5)
+        # Intitialise is fast now, better to re-intisialise everytime
+        # for attempt in range(3):
+        #     registers = ADCInterface.read_register(comport)
+        #     if ('38 de' in registers) and ('80 0' in registers) and ('10 40' in registers) and ('28 0' in registers):
+        #         initialised = True
+        #         print('ADC Already Initialised')
+        #         break
+        #     else:
+        #         print(f'ADC Reg returned: {registers} on attempt {attempt}')
+        #         time.sleep(0.5)
 
         while not initialised:
             ADCInterface.reset_adc(comport)
@@ -204,6 +208,15 @@ class Piano:
         #     print(ADCInterface.read_adc(self.leftSTMComm))
         #     time.sleep(0.001)
 
+    def reinitialiseADC(self):
+        ADCInterface.reset_adc(self.leftSTMComm)
+        time.sleep(0.5)
+        ADCInterface.initialize(self.leftSTMComm)
+        time.sleep(0.2)
+        ADCInterface.reset_adc(self.rightSTMComm)
+        time.sleep(0.5)
+        ADCInterface.initialize(self.rightSTMComm)
+        time.sleep(0.2)
         
     def addKey(self, key):
         self.keys.append(key)
@@ -231,6 +244,10 @@ class Piano:
     def calibrate_ADCs(self): 
         ADCInterface.calibrate(self.leftSTMComm)
         ADCInterface.calibrate(self.rightSTMComm)
+
+    def set_ADC_threshold(self, threshold):
+        ADCInterface.set_threshold(self.leftSTMComm, threshold)
+        ADCInterface.set_threshold(self.rightSTMComm, threshold)
 
     def updateLEDs(self): 
         current_index = 0

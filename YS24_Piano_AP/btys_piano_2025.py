@@ -311,6 +311,7 @@ def main(args):
         print("\t55 -> Self Play Random Song - Difficulty choice")
         print("\t54 -> Group of Select Few")
         print("\t66 -> Recalibrate ADCs")
+        print("\t7  -> Set the Threshold for the ADCs")
         print("\t0  -> END THE PROGRAM")
 
         try:
@@ -342,13 +343,15 @@ def main(args):
         elif game == 3: 
             print("\n ")
             songs = list(Path("midi_songs/").rglob('*.mid'))
+            songs.sort()
 
             print("\nWhat song would you like to play:")
 
             # Display the songs with indices
             for i, song in enumerate(songs):
                 try:
-                     if "Lord Huron" in song.name:
+                    #  if "Lord Huron" in song.name:
+                    if i > 200:
                         print(f"Number: {i}, Song: {song.name}")
                 except ValueError:
                     print("Something wrong with the file name")
@@ -360,7 +363,10 @@ def main(args):
 
             midiSong = str(selected_song)
             print("Time to play" + midiSong)
-            piano.parseSongMidi(midiSong)
+            try:
+                piano.parseSongMidi(midiSong)
+            except:
+                print(f"Error Playing {midiSong} :(")
 
         elif game == 4: 
             print("\n ")
@@ -463,8 +469,16 @@ def main(args):
             print("\n ")
             Solid(pixel_object=fullpainomappa, color = PINK).animate()  
             print(" ************ I AM CALIBRATING... ********* ")
+            piano.reinitialiseADC()
             piano.calibrate_ADCs()
-            time.sleep(3)
+            time.sleep(0.5)
+
+        elif game == 7: 
+            print("\n ")
+            print(" ************ Adjust ADC Threshold. ********* ")
+            threshold = input("Enter the new ADC Threshold: ")
+            piano.set_ADC_threshold(threshold)
+            time.sleep(0.5)
    
         elif game == 0:
             print("\nExiting the program.")
