@@ -298,6 +298,7 @@ def main(args):
         print("\t55 -> Self Play Random Song - Difficulty choice")
         print("\t54 -> Group of Select Few")
         print("\t66 -> Recalibrate ADCs")
+        print("\t7  -> Set the Threshold for the ADCs")
         print("\t0  -> END THE PROGRAM")
 
         try:
@@ -316,13 +317,18 @@ def main(args):
             piano.setScale(scale_select)
 
         elif game == 3: 
-            print("\nWhat song would you like to play:")
+            print("\n ")
             songs = list(Path("midi_songs/").rglob('*.mid'))
+            songs.sort()
+
+            print("\nWhat song would you like to play:")
 
             # Display the songs with indices
             for i, song in enumerate(songs):
                 try:
-                    print(f"Number: {i}, Song: {song.name}")
+                    #  if "Lord Huron" in song.name:
+                    if i > 200:
+                        print(f"Number: {i}, Song: {song.name}")
                 except ValueError:
                     print("Something wrong with the file name")
                     continue
@@ -331,8 +337,12 @@ def main(args):
             song_index = int(input("Enter the song number: "))
             selected_song = songs[song_index]
 
-            print("Time to play" + str(selected_song))
-            piano.parseSongMidi(str(selected_song))
+            midiSong = str(selected_song)
+            print("Time to play" + midiSong)
+            try:
+                piano.parseSongMidi(midiSong)
+            except:
+                print(f"Error Playing {midiSong} :(")
 
         elif game == 4: 
             print("\n ************ CHOPSTICKS... ********* ")
@@ -366,7 +376,9 @@ def main(args):
             piano.parseSongMidi(str(songs[song_index]))
 
         elif game == 55: 
-            print("\n ************ Random Song - Measure ********* \n")
+            print("\n ")
+            print(" ************ Random Song - Measure ********* ")
+            print("\n ")
             songs = list(Path("midi_songs/").rglob('*.mid'))
             songsFiltered = []
 
@@ -425,8 +437,16 @@ def main(args):
             print("\n ")
             Solid(pixel_object=fullpainomappa, color = PINK).animate()  
             print(" ************ I AM CALIBRATING... ********* ")
+            piano.reinitialiseADC()
             piano.calibrate_ADCs()
-            time.sleep(3)
+            time.sleep(0.5)
+
+        elif game == 7: 
+            print("\n ")
+            print(" ************ Adjust ADC Threshold. ********* ")
+            threshold = input("Enter the new ADC Threshold: ")
+            piano.set_ADC_threshold(threshold)
+            time.sleep(0.5)
    
         elif game == 0:
             print("\nExiting the program.")
