@@ -355,7 +355,8 @@ def main(args):
             except ValueError:
                 print("Something wrong with the file name")
                 continue
-
+            
+            # useless comment
             piano.parseSongMidi(str(random_song))
 
         elif game == 51: 
