@@ -130,17 +130,6 @@ class ADCInterface:
     def adc_full_init(comport, do_init = False):
         initialised = False
 
-        # Intitialise is fast now, better to re-intisialise everytime
-        # for attempt in range(3):
-        #     registers = ADCInterface.read_register(comport)
-        #     if ('38 de' in registers) and ('80 0' in registers) and ('10 40' in registers) and ('28 0' in registers):
-        #         initialised = True
-        #         print('ADC Already Initialised')
-        #         break
-        #     else:
-        #         print(f'ADC Reg returned: {registers} on attempt {attempt}')
-        #         time.sleep(0.5)
-
         while not initialised:
             ADCInterface.reset_adc(comport)
             time.sleep(2)
@@ -445,26 +434,30 @@ class Piano:
         threading.Thread(target=self.loop_LEDs, daemon=True).start()
         threading.Thread(target=self.exit_loop, daemon=True).start()
 
-        mid = mido.MidiFile(midiSong)
+        try:
+            mid = mido.MidiFile(midiSong)
+            
+            # Determine the scale based on the highest note in the MIDI file
+            max_note = max(msg.note for msg in mid if msg.type in ['note_on', 'note_off'])
+            scale = (max_note // 12) + 1
+            print(f"Detected scale: {scale}")
+
+            for msg in mid.play():
+                midioutPort.send(msg) # play sound regardless
+                #print(msg)
+                if(msg.type in ['note_on','note_off']):
+                    for key in self.keys:
+                        if msg.note == key.getNote().getMidiNumber():                     
+                            if(msg.type == 'note_on' and msg.velocity > 0):
+                                key.selfPlayActive()
+                            elif(msg.type == 'note_off' or msg.velocity == 0):
+                                key.selfPlayStop()
+
+                if self.exit:
+                    break   
         
-        # Determine the scale based on the highest note in the MIDI file
-        max_note = max(msg.note for msg in mid if msg.type in ['note_on', 'note_off'])
-        scale = (max_note // 12) + 1
-        print(f"Detected scale: {scale}")
-
-        for msg in mid.play():
-            midioutPort.send(msg) # play sound regardless
-            #print(msg)
-            if(msg.type in ['note_on','note_off']):
-                for key in self.keys:
-                    if msg.note == key.getNote().getMidiNumber():                     
-                        if(msg.type == 'note_on' and msg.velocity > 0):
-                            key.selfPlayActive()
-                        elif(msg.type == 'note_off' or msg.velocity == 0):
-                            key.selfPlayStop()
-
-            if self.exit:
-                break   
+        except: 
+            print(f"Error Playing {midiSong} :(")
 
         self.exit = True
 

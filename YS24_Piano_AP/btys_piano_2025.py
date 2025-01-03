@@ -290,16 +290,18 @@ def main(args):
 
         print("What game would you like to play:")
         print("\nOptions are:")
-        print("\t1  -> FREE PLAY MODE")
-        print("\t2  -> SET scale")
-        print("\t3  -> Self Play Song")
-        print("\t4  -> Chopsticks Game")
-        print("\t5  -> Self Play Random Song")
-        print("\t55 -> Self Play Random Song - Difficulty choice")
-        print("\t54 -> Group of Select Few")
-        print("\t66 -> Recalibrate ADCs")
-        print("\t7  -> Set the Threshold for the ADCs")
-        print("\t0  -> END THE PROGRAM")
+        print("\t1   ->     FREE PLAY MODE")
+        print("\t2   ->     SET scale")
+        print("\t3   ->     Self Play Song - Print out List and Enter Index")
+        print("\t4   ->     Chopsticks Game")
+        print("\t5   ->     Self Play Random Song")
+        print("\t51  ->     Self Play Random Song - Aoife List")
+        print("\t52  ->     Self Play Random Song - Sean List")
+        print("\t55  ->     Self Play Random Song - Difficulty Choice")
+        print("\t54  ->     Self Play Random Song - Select Few")
+        print("\t66  ->     Recalibrate ADCs")
+        print("\t7   ->     Set the Threshold for the ADCs")
+        print("\t0   ->     END THE PROGRAM")
 
         try:
             game = int(input("Enter your choice: "))
@@ -336,11 +338,8 @@ def main(args):
             selected_song = songs[song_index]
 
             midiSong = str(selected_song)
-            print("Time to play" + midiSong)
-            try:
-                piano.parseSongMidi(midiSong)
-            except:
-                print(f"Error Playing {midiSong} :(")
+            print("Time to play: " + midiSong)
+            piano.parseSongMidi(midiSong)
 
         elif game == 4: 
             print("\n ************ CHOPSTICKS... ********* ")
@@ -359,9 +358,23 @@ def main(args):
 
             piano.parseSongMidi(str(random_song))
 
+        elif game == 51: 
+            print("\n ************ Random Song - Aoife Choice ********* \n")
+            songs = list(Path("midi_songs/Aoife/").rglob('*.mid'))
+            song_index = random.choice(selectFewSongs)
+
+            piano.parseSongMidi(str(songs[song_index]))
+
+        elif game == 52: 
+            print("\n ************ Random Song - Sean Choice ********* \n")
+            songs = list(Path("midi_songs/Sean/").rglob('*.mid'))
+            song_index = random.choice(selectFewSongs)
+
+            piano.parseSongMidi(str(songs[song_index]))
+
         elif game == 54: 
             print("\n ************ Random Song - Select Few ********* \n")
-            songs = list(Path("midi_songs/").rglob('*.mid'))
+            songs = list(Path("midi_songs/SelectFew/").rglob('*.mid'))
 
             song_index = random.choice(selectFewSongs)
 
@@ -375,12 +388,18 @@ def main(args):
 
         elif game == 55: 
             print("\n ")
-            print(" ************ Random Song - Measure ********* ")
+            print(" ************ Random Song - Difficulty Choice ********* ")
             print("\n ")
-            songs = list(Path("midi_songs/").rglob('*.mid'))
             songsFiltered = []
 
             try:
+                print("What difficulty level song would you like to play:")
+                print("\nOptions are:")
+                print("\t1  -> Easy")
+                print("\t2  -> Medium")
+                print("\t3  -> Intermediate")
+                print("\t4  -> Hard")
+                print("\t5  -> Advanced")
                 difficulty = int(input("Enter your Difficulty Choice: "))
             except ValueError:
                 print("\nInvalid input!")
@@ -389,28 +408,23 @@ def main(args):
             # Display the songs with indices
             for i, song in enumerate(songs):
                 if difficulty == 1:
-                    if "(Easy)" in song.name:
-                        print("\nChose Easy")
-                        songsFiltered.append(song)
+                    print("\nChose Easy")
+                    songsFiltered = list(Path("midi_songs/Easy/").rglob('*.mid'))
                 elif difficulty == 2:
-                    if "(Medium)" in song.name:
-                        print("\nChose Medium")
-                        songsFiltered.append(song)
+                    print("\nChose Medium")
+                    songsFiltered = list(Path("midi_songs/Medium/").rglob('*.mid'))
                 elif difficulty == 3:
-                    if "(Hard)" in song.name:
-                        print("\nChose Hard")
-                        songsFiltered.append(song)
+                    print("\nChose Intermediate")
+                    songsFiltered = list(Path("midi_songs/Intermediate/").rglob('*.mid'))
                 elif difficulty == 4:
-                    if "(Intermediate)" in song.name:
-                        print("\nChose Intermediate")
-                        songsFiltered.append(song)
+                    print("\nChose Hard")
+                    songsFiltered = list(Path("midi_songs/Hard/").rglob('*.mid'))
                 elif difficulty == 5:
-                    if "(Advanced)" in song.name:
-                        print("\nhose Advanced")
-                        songsFiltered.append(song)
+                    print("\nChose Advanced")
+                    songsFiltered = list(Path("midi_songs/Advanced/").rglob('*.mid'))
                 else: 
-                    print("Invalid Choice... Chose all songs instead...")
-                    songsFiltered.append(song)
+                    print("Invalid Choice... Chose all songs instead...!")
+                    songsFiltered = list(Path("midi_songs/").rglob('*.mid'))
             
             print("\n List of Songs... :")
             for i,song in enumerate(songsFiltered):
@@ -423,7 +437,7 @@ def main(args):
 
             random_song = random.choice(songsFiltered)
             try:
-                print(f"Playing Song: {random_song.name}")
+                print(f"\n\tPlaying Song: {random_song.name}")
             except ValueError:
                 print("Something wrong with the file name...")
                 continue
