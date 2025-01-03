@@ -326,9 +326,7 @@ def main(args):
             # Display the songs with indices
             for i, song in enumerate(songs):
                 try:
-                    #  if "Lord Huron" in song.name:
-                    if i > 200:
-                        print(f"Number: {i}, Song: {song.name}")
+                    print(f"Number: {i}, Song: {song.name}")
                 except ValueError:
                     print("Something wrong with the file name")
                     continue
@@ -437,8 +435,8 @@ def main(args):
             print("\n ")
             Solid(pixel_object=fullpainomappa, color = PINK).animate()  
             print(" ************ I AM CALIBRATING... ********* ")
-            piano.reinitialiseADC()
-            piano.calibrate_ADCs()
+            piano.reinitialiseADC() # skip the calibraation
+            piano.calibrate_ADCs() # do the calibration
             time.sleep(0.5)
 
         elif game == 7: 

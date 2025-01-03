@@ -127,7 +127,7 @@ class ADCInterface:
         return ADCInterface.send_command(comport, "POW", 0.04, threshold)
 
     @staticmethod
-    def adc_full_init(comport):
+    def adc_full_init(comport, do_init = False):
         initialised = False
 
         # Intitialise is fast now, better to re-intisialise everytime
@@ -154,7 +154,8 @@ class ADCInterface:
                 print('Failed to program ADC')
                 print(registers)
 
-        ADCInterface.calibrate(comport)
+        if do_init:
+            ADCInterface.calibrate(comport)
 
 class Piano: 
     def __init__(self, pixels): 
@@ -188,8 +189,8 @@ class Piano:
                 elif "RIGHT" in ADCInterface.SN_read(initialised_port):
                     self.rightSTMComm = initialised_port
 
-        ADCInterface.adc_full_init(self.leftSTMComm)
-        ADCInterface.adc_full_init(self.rightSTMComm)
+        ADCInterface.adc_full_init(self.leftSTMComm, True)
+        ADCInterface.adc_full_init(self.rightSTMComm, True)
 
         # FOR DEBUG
         # while True:
@@ -197,14 +198,9 @@ class Piano:
         #     time.sleep(0.001)
 
     def reinitialiseADC(self):
-        ADCInterface.reset_adc(self.leftSTMComm)
-        time.sleep(0.5)
-        ADCInterface.initialize(self.leftSTMComm)
-        time.sleep(0.2)
-        ADCInterface.reset_adc(self.rightSTMComm)
-        time.sleep(0.5)
-        ADCInterface.initialize(self.rightSTMComm)
-        time.sleep(0.2)
+        # use instead the function that checks if the registers are set correctly
+        ADCInterface.adc_full_init(self.leftSTMComm, False) 
+        ADCInterface.adc_full_init(self.rightSTMComm, False)
         
     def addKey(self, key):
         self.keys.append(key)
