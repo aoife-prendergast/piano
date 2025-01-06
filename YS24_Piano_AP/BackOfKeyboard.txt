@@ -1,0 +1,14 @@
+Options are:
+        1   ->     FREE PLAY MODE
+        2   ->     SET scale
+        3   ->     Self Play Song - Print out List and Enter Index
+        4   ->     Chopsticks Game
+        5   ->     Self Play Random Song
+        51  ->     Self Play Random Song - Aoife List
+        52  ->     Self Play Random Song - Sean List
+        53  ->     Self Play Select Song - Select Few
+        54  ->     Self Play Random Song - Select Few
+        55  ->     Self Play Random Song - Difficulty Choice
+        66  ->     Recalibrate ADCs
+        7   ->     Set the Threshold for the ADCs
+        0   ->     END THE PROGRAM

@@ -297,8 +297,9 @@ def main(args):
         print("\t5   ->     Self Play Random Song")
         print("\t51  ->     Self Play Random Song - Aoife List")
         print("\t52  ->     Self Play Random Song - Sean List")
-        print("\t55  ->     Self Play Random Song - Difficulty Choice")
+        print("\t53  ->     Self Play Select Song - Select Few")
         print("\t54  ->     Self Play Random Song - Select Few")
+        print("\t55  ->     Self Play Random Song - Difficulty Choice")
         print("\t66  ->     Recalibrate ADCs")
         print("\t7   ->     Set the Threshold for the ADCs")
         print("\t0   ->     END THE PROGRAM")
@@ -320,7 +321,7 @@ def main(args):
 
         elif game == 3: 
             print("\n ")
-            songs = list(Path("midi_songs/").rglob('*.mid'))
+            songs = list(Path("midi_songs/").glob('*.mid'))
             songs.sort()
 
             print("\nWhat song would you like to play:")
@@ -347,7 +348,7 @@ def main(args):
 
         elif game == 5: 
             print("\n ************ Random Song ********* \n")
-            songs = list(Path("midi_songs/").rglob('*.mid'))
+            songs = list(Path("midi_songs/").glob('*.mid'))
             random_song = random.choice(songs)
 
             try:
@@ -361,21 +362,45 @@ def main(args):
 
         elif game == 51: 
             print("\n ************ Random Song - Aoife Choice ********* \n")
-            songs = list(Path("midi_songs/Aoife/").rglob('*.mid'))
+            songs = list(Path("midi_songs/Aoife/").glob('*.mid'))
             song_index = random.choice(selectFewSongs)
 
             piano.parseSongMidi(str(songs[song_index]))
 
         elif game == 52: 
             print("\n ************ Random Song - Sean Choice ********* \n")
-            songs = list(Path("midi_songs/Sean/").rglob('*.mid'))
+            songs = list(Path("midi_songs/Sean/").glob('*.mid'))
             song_index = random.choice(selectFewSongs)
 
             piano.parseSongMidi(str(songs[song_index]))
 
+        elif game == 53: 
+            print("\n ")
+            print("\n ************ Select Song - Select Few ********* \n")
+            songs = list(Path("midi_songs/SelectFew/").glob('*.mid'))
+            songs.sort()
+
+            print("\nWhat song would you like to play:")
+
+            # Display the songs with indices
+            for i, song in enumerate(songs):
+                try:
+                    print(f"Number: {i}, Song: {song.name}")
+                except ValueError:
+                    print("Something wrong with the file name")
+                    continue
+            
+            # User selects a song by index
+            song_index = int(input("Enter the song number: "))
+            selected_song = songs[song_index]
+
+            midiSong = str(selected_song)
+            print("Time to play: " + midiSong)
+            piano.parseSongMidi(midiSong)
+
         elif game == 54: 
             print("\n ************ Random Song - Select Few ********* \n")
-            songs = list(Path("midi_songs/SelectFew/").rglob('*.mid'))
+            songs = list(Path("midi_songs/SelectFew/").glob('*.mid'))
 
             song_index = random.choice(selectFewSongs)
 
@@ -405,27 +430,25 @@ def main(args):
             except ValueError:
                 print("\nInvalid input!")
                 continue
-
-            # Display the songs with indices
-            for i, song in enumerate(songs):
-                if difficulty == 1:
-                    print("\nChose Easy")
-                    songsFiltered = list(Path("midi_songs/Easy/").rglob('*.mid'))
-                elif difficulty == 2:
-                    print("\nChose Medium")
-                    songsFiltered = list(Path("midi_songs/Medium/").rglob('*.mid'))
-                elif difficulty == 3:
-                    print("\nChose Intermediate")
-                    songsFiltered = list(Path("midi_songs/Intermediate/").rglob('*.mid'))
-                elif difficulty == 4:
-                    print("\nChose Hard")
-                    songsFiltered = list(Path("midi_songs/Hard/").rglob('*.mid'))
-                elif difficulty == 5:
-                    print("\nChose Advanced")
-                    songsFiltered = list(Path("midi_songs/Advanced/").rglob('*.mid'))
-                else: 
-                    print("Invalid Choice... Chose all songs instead...!")
-                    songsFiltered = list(Path("midi_songs/").rglob('*.mid'))
+            
+            if difficulty == 1:
+                print("\nChose Easy")
+                songsFiltered = list(Path("midi_songs/Easy/").glob('*.mid'))
+            elif difficulty == 2:
+                print("\nChose Medium")
+                songsFiltered = list(Path("midi_songs/Medium/").glob('*.mid'))
+            elif difficulty == 3:
+                print("\nChose Intermediate")
+                songsFiltered = list(Path("midi_songs/Intermediate/").glob('*.mid'))
+            elif difficulty == 4:
+                print("\nChose Hard")
+                songsFiltered = list(Path("midi_songs/Hard/").glob('*.mid'))
+            elif difficulty == 5:
+                print("\nChose Advanced")
+                songsFiltered = list(Path("midi_songs/Advanced/").glob('*.mid'))
+            else: 
+                print("Invalid Choice... Chose all songs instead...!")
+                songsFiltered = list(Path("midi_songs/").glob('*.mid'))
             
             print("\n List of Songs... :")
             for i,song in enumerate(songsFiltered):
