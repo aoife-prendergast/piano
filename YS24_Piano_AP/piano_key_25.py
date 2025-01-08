@@ -168,12 +168,12 @@ class Piano:
 
         comport_lists = ["/dev/ttyACM0","/dev/ttyACM1"]
         self.leftSTMComm = None
-        self.rightSTMComm = ModuleNotFoundError
+        self.rightSTMComm = None
 
         while self.leftSTMComm == None or self.rightSTMComm == None:
             for serial_num in comport_lists: 
                 initialised_port = SerialPortManager.initialize_port(serial_num)
-                if "LEFT" in ADCInterface.SN_read(initialised_port) and self.leftSTMComm == 0: 
+                if "LEFT" in ADCInterface.SN_read(initialised_port): 
                     self.leftSTMComm = initialised_port
                 elif "RIGHT" in ADCInterface.SN_read(initialised_port):
                     self.rightSTMComm = initialised_port
@@ -456,8 +456,9 @@ class Piano:
                 if self.exit:
                     break   
         
-        except: 
+        except Exception as e: 
             print(f"Error Playing {midiSong} :(")
+            print(e)
 
         self.exit = True
 
