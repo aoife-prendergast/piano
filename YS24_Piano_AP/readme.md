@@ -1,4 +1,4 @@
-# Piano 2.0 - BTYS 2024
+# Piano 2.1 - BTYS 2025
 
 ### Working so far:
 1. Sensor activation 
@@ -9,16 +9,9 @@
 	Run the make.sh shell script by running "bash make.sh" in the terminal
 
 #### To Run the program 
-1. Launch terminal inside the led_control directory
-2. Run 'sudo python3 main.py' 
+1. Launch terminal inside the "YS24_Piano_AP" directory
+2. Run 'sudo python3 main.py'
+3. Launch additional terminal inside the "YS24_Piano_AP" directory
+4. Run 'sudo python3 btys_piano_2025.py' 
 
 
-
-
-
-
-***********************************************
-1. Create Virtual Midi Port - sudo modprobe snd-virmidi midi-devs=1
-2. Check that is there - aconnect -o
-3. Connect the music player to the port 
-4. Run the python script - plays a sound through the virtual cable
