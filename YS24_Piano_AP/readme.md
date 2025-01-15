@@ -10,8 +10,8 @@
 
 #### To Run the program 
 1. Launch terminal inside the "YS24_Piano_AP" directory
-2. Run 'sudo python3 main.py'
-3. Launch additional terminal inside the "YS24_Piano_AP" directory
-4. Run 'sudo python3 btys_piano_2025.py' 
+2. Run 'fluidsynth -a alsa -g 5 /usr/share/sounds/sf2/FluidR3_GM.sf2' (Missing piece that declares the names)
+4. Launch additional terminal inside the "YS24_Piano_AP" directory
+5. Run 'sudo python3 btys_piano_2025.py' 
 
 
